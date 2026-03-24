@@ -172,6 +172,32 @@
   }
   .btn-primary:hover { background: #388bfd; }
   .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-send {
+    width: 100%;
+    margin-top: 10px;
+    padding: 8px 12px;
+    background: linear-gradient(135deg, #e44d6e, #f778ba);
+    border: none;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-send:hover { filter: brightness(1.1); }
+  .btn-send:disabled { opacity: 0.4; cursor: not-allowed; filter: none; }
+  .send-status {
+    margin-top: 8px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    line-height: 1.5;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .send-status.ok { background: var(--success-bg); color: var(--success); border: 1px solid var(--success); }
+  .send-status.err { background: var(--error-bg); color: var(--error); border: 1px solid var(--error); }
+  .send-status.info { background: var(--surface2); color: var(--text-muted); border: 1px solid var(--border); }
 
   /* Date filter row */
   .date-row {
@@ -420,6 +446,68 @@
   .toast.info { background: var(--surface2); color: var(--text-muted); border: 1px solid var(--border); }
   @keyframes slideIn { from { transform: translateX(100%); opacity:0; } to { transform: translateX(0); opacity:1; } }
 
+  /* Check toolbar */
+  .check-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .check-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+  }
+  .check-btn {
+    padding: 6px 16px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  .check-count {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* Header send button */
+  .header-send-btn {
+    padding: 6px 18px;
+    background: linear-gradient(135deg, #e44d6e, #f778ba);
+    border: 2px solid var(--pink);
+    border-radius: 6px;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .header-send-btn:hover { filter: brightness(1.15); }
+  .header-send-btn:disabled { opacity: 0.35; cursor: not-allowed; filter: none; }
+
+  /* Settings toggle */
+  .settings-toggle {
+    padding: 4px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--surface2);
+    color: var(--text-muted);
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s;
+  }
+  .settings-toggle:hover { border-color: var(--accent); color: var(--text); }
+  .settings-toggle.active { border-color: var(--primary); color: var(--accent); background: var(--primary-glow); }
+  .sidebar-section.collapsible { display: none; }
+  .sidebar-section.collapsible.open { display: block; }
+
   /* Responsive */
   @media (max-width: 900px) {
     .main { flex-direction: column; }
@@ -437,7 +525,9 @@
   </div>
   <span class="header-subtitle">ดูข้อมูล LAB จากฐานข้อมูล HOSxP</span>
   <div class="header-spacer"></div>
-  <a href="napplus-lab-dashboard.html" class="back-link">&larr; กลับ Dashboard</a>
+  <button class="header-send-btn" id="headerSendBtn" onclick="sendReport()" disabled>Send Report to NAPPLUS</button>
+  <!--<a href="napplus-lab-dashboard.html" class="back-link">&larr; กลับ Dashboard</a>-->
+  <button class="settings-toggle" id="settingsBtn" onclick="toggleSettings()">&#9881; ตั้งค่า</button>
   <div class="conn-badge disconnected" id="connBadge">
     <div class="conn-dot"></div>
     <span id="connText">Not Connected</span>
@@ -449,7 +539,7 @@
   <!-- Sidebar -->
   <div class="sidebar">
     <!-- Session -->
-    <div class="sidebar-section">
+    <div class="sidebar-section collapsible" id="sectionSession">
       <div class="section-title">BMS Session</div>
       <div class="field-group">
         <div class="field-label">Session ID (GUID)</div>
@@ -504,6 +594,29 @@
         <span id="runBtnText">Query Data</span>
       </button>
     </div>
+
+    <!-- NAPPLUS Connection -->
+    <div class="sidebar-section collapsible" id="sectionNapplus">
+      <div class="section-title">NAPPLUS API</div>
+      <div class="field-group">
+        <div class="field-label">HCODE (Hospital Code)</div>
+        <input type="text" class="field-input" id="hcode" placeholder="XXXXX" maxlength="5">
+      </div>
+      <div class="field-group">
+        <div class="field-label">UserName (auto: LAB + HCODE)</div>
+        <input type="text" class="field-input" id="napplusUsername" readonly style="color:var(--text-muted)">
+      </div>
+      <div class="field-group">
+        <div class="field-label">API Key (Token)</div>
+        <input type="password" class="field-input" id="apiKey" placeholder="NAPPLUS API Key">
+      </div>
+      <button class="btn" id="napplusConnectBtn" onclick="handleNapplusConnect()" style="margin-top:10px">Connect NAPPLUS</button>
+      <div class="status-row" id="napplusStatusRow" style="margin-top:6px">
+        <div class="status-dot" id="napplusDot"></div>
+        <span id="napplusStatusTxt" style="color:var(--text-muted)">Not Connected</span>
+      </div>
+      <div class="send-status" id="sendStatus" style="display:none"></div>
+    </div>
   </div>
 
   <!-- Content -->
@@ -534,8 +647,11 @@
     <!-- Tabs -->
     <div class="tabs">
       <button class="tab-btn active" onclick="showTab('table', this)">Table</button>
-      <button class="tab-btn" onclick="showTab('json', this)">{ } JSON</button>
-      <button class="tab-btn" onclick="showTab('sql', this)">SQL Source</button>
+      <!--<button class="tab-btn" onclick="showTab('json', this)">{ } JSON</button>-->
+      <!--<button class="tab-btn" onclick="showTab('sql', this)">SQL Source</button>-->
+      <button class="tab-btn" onclick="showTab('check', this)">ตรวจสอบข้อมูล</button>
+      <button class="tab-btn" onclick="showTab('result', this)">ผลตรวจ</button>
+      <button class="tab-btn" onclick="showTab('report', this)" id="reportTabBtn" style="display:none">Send Report</button>
     </div>
 
     <!-- Tab: Table -->
@@ -561,6 +677,53 @@
     <!-- Tab: SQL -->
     <div class="tab-content" id="tab-sql">
       <div class="sql-view" id="sqlContent"></div>
+    </div>
+
+    <!-- Tab: Check -->
+    <div class="tab-content" id="tab-check">
+      <div class="check-toolbar">
+        <span class="check-label">ตรวจสอบข้อมูล get_lab_request จาก NAPPLUS</span>
+        <div class="toolbar-spacer"></div>
+        <span class="check-count" id="checkCount" style="display:none">0 รายการ</span>
+        <span class="elapsed-badge" id="checkElapsed"></span>
+        <button class="btn btn-primary check-btn" id="checkBtn" onclick="checkLabRequest()">ตรวจสอบข้อมูล</button>
+      </div>
+      <div id="checkEmpty" class="empty-state" style="padding:30px">
+        <div class="empty-icon">?</div>
+        <div class="empty-title">ตรวจสอบข้อมูลจาก NAPPLUS</div>
+        <div class="empty-sub">
+          กดปุ่ม "ตรวจสอบข้อมูล" เพื่อดึงข้อมูล LAB_REQUEST<br>
+          จาก NAPPLUS API ตามช่วงวันที่ที่เลือก<br>
+          (ต้อง Connect NAPPLUS ก่อน)
+        </div>
+      </div>
+      <div class="table-wrap" id="checkTableWrap" style="display:none"></div>
+    </div>
+
+    <!-- Tab: Result -->
+    <div class="tab-content" id="tab-result">
+      <div class="check-toolbar">
+        <span class="check-label">ผลตรวจ get_lab_result จาก NAPPLUS</span>
+        <div class="toolbar-spacer"></div>
+        <span class="check-count" id="resultCount" style="display:none">0 รายการ</span>
+        <span class="elapsed-badge" id="resultElapsed"></span>
+        <button class="btn btn-primary check-btn" id="resultBtn" onclick="checkLabResult()">ดึงผลตรวจ</button>
+      </div>
+      <div id="resultEmpty" class="empty-state" style="padding:30px">
+        <div class="empty-icon">R</div>
+        <div class="empty-title">ผลตรวจจาก NAPPLUS</div>
+        <div class="empty-sub">
+          กดปุ่ม "ดึงผลตรวจ" เพื่อดึงข้อมูล LAB_RESULT<br>
+          จาก NAPPLUS API ตามช่วงวันที่ที่เลือก<br>
+          (ต้อง Connect NAPPLUS ก่อน)
+        </div>
+      </div>
+      <div class="table-wrap" id="resultTableWrap" style="display:none"></div>
+    </div>
+
+    <!-- Tab: Report -->
+    <div class="tab-content" id="tab-report">
+      <div class="json-view" id="reportContent">No report sent yet</div>
     </div>
   </div>
 </div>
@@ -723,6 +886,13 @@ async function handleConnect() {
   document.getElementById('sessionStatusTxt').textContent = 'Session Active';
   document.getElementById('sessionStatusTxt').style.color = 'var(--success)';
 
+  // Auto-fill HCODE from session
+  const hcodeFromSession = userInfo.hcode || userInfo.hospital_code || userInfo.hospcode || '';
+  if (hcodeFromSession) {
+    document.getElementById('hcode').value = hcodeFromSession;
+    updateSendBtnState();
+  }
+
   showToast('ok', `Connected: ${userInfo.name || 'OK'} @ ${userInfo.location || ''}`);
 }
 
@@ -822,51 +992,30 @@ function applyFilter() {
 }
 
 // == Build SQL ==
+function toBEDate(dateStr) {
+  // Convert yyyy-mm-dd to Buddhist Era yyyymmdd
+  const [y, m, d] = dateStr.split('-');
+  return `${parseInt(y) + 543}${m}${d}`;
+}
+
 function buildSql() {
   const dateFrom = document.getElementById('dateFrom').value || todayStr();
   const dateTo = document.getElementById('dateTo').value || todayStr();
+  const beFrom = toBEDate(dateFrom);
+  const beTo = toBEDate(dateTo);
 
-  let labTypes = activeLabTypes.length > 0
-    ? activeLabTypes.map(t => `'${t}'`).join(',')
-    : "'101','102','201','202','203','204'";
-
-  return `SELECT i.gen_order_prefix::INT as LAB_TYPE,
-(SELECT hospitalcode FROM opdconfig limit 1)::TEXT AS HCODE_REQUEST,
-(SELECT hospitalcode FROM opdconfig limit 1)::TEXT AS HCODE_LAB,
-(CASE WHEN i.gen_order_prefix in('101','102') then p.cid ELSE '' END)::TEXT AS PATIENT_ID ,
-h.lab_order_number::TEXT AS LAB_REQUEST_ID,
-TO_CHAR(
-  (EXTRACT(YEAR FROM h.order_date) + 543)::int * 10000 +
-  EXTRACT(MONTH FROM h.order_date)::int * 100 +
-  EXTRACT(DAY FROM h.order_date)::int,
-  'FM00000000'
-)::TEXT AS REQUEST_DATE,
-ptt.name::TEXT as PATIENT_RIGHT,
-'Y'::TEXT AS REQUEST_APPROVED_STATUS,
-'1'::TEXT AS LAB_STATUS,
-i.lab_items_name::TEXT AS LAB_ITEM,
-''::TEXT AS REQUEST_APPROVED_REMARK ,
-o.lab_order_result::TEXT AS TEST_RESULT,
-''::TEXT AS REMARK_NODETECTED
- FROM lab_head h
-LEFT JOIN lab_order o on o.lab_order_number = h.lab_order_number
-INNER JOIN lab_items i on i.lab_items_code = o.lab_items_code
-LEFT JOIN patient p on p.hn = h.hn
-LEFT JOIN ovst ov on ov.vn = h.vn
-LEFT JOIN pttype ptt on ptt.pttype = ov.pttype
-WHERE h.order_date BETWEEN '${dateFrom}' AND '${dateTo}'
-AND i.gen_order_prefix in(${labTypes}) ;`;
+  return `SELECT * FROM bms_napplus WHERE request_date BETWEEN '${beFrom}' AND '${beTo}'`;
 }
 
 // == SQL Syntax Highlight ==
 function highlightSql(sql) {
   let s = sql.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const keywords = ['SELECT','FROM','LEFT JOIN','INNER JOIN','WHERE','AND','BETWEEN','AS','CASE','WHEN','THEN','ELSE','END','IN','LIMIT','OR','ON'];
+  const keywords = ['SELECT','FROM','LEFT JOIN','INNER JOIN','WHERE','AND','BETWEEN','AS','CASE','WHEN','THEN','ELSE','END','IN','LIMIT','OR','ON','ORDER BY','GROUP BY'];
   keywords.forEach(kw => {
     s = s.replace(new RegExp('\\b(' + kw + ')\\b', 'gi'), '<span class="sql-keyword">$1</span>');
   });
   s = s.replace(/('(?:[^'\\]|\\.)*')/g, '<span class="sql-string">$1</span>');
-  ['TO_CHAR','EXTRACT','YEAR','MONTH','DAY','INT','TEXT','FM00000000'].forEach(fn => {
+  ['COUNT','SUM','MAX','MIN','TO_CHAR','EXTRACT'].forEach(fn => {
     s = s.replace(new RegExp('\\b(' + fn + ')\\b', 'g'), '<span class="sql-function">$1</span>');
   });
   return s;
@@ -963,6 +1112,7 @@ async function runQuery() {
   renderTable(filteredData);
   renderSummary(lastData);
   renderJsonTab(filteredData);
+  updateSendBtnState();
 
   showToast('ok', `สำเร็จ - ${lastData.length} รายการ (${elapsed}ms)`);
 }
@@ -1106,6 +1256,597 @@ function copySql() {
   });
 }
 
+// == Send Report to NAPPLUS ==
+const NAPPLUS_BASE_URL = 'https://dmis.nhso.go.th/NAPPLUSLABAPI/api';
+let napplusConnected = false;
+
+function updateSendBtnState() {
+  const hasData = filteredData.length > 0;
+  const enabled = napplusConnected && hasData;
+  document.getElementById('headerSendBtn').disabled = !enabled;
+}
+
+function updateNapplusUsername() {
+  const hcode = document.getElementById('hcode').value.trim();
+  document.getElementById('napplusUsername').value = hcode ? `LAB${hcode}` : '';
+}
+
+function handleNapplusConnect() {
+  if (napplusConnected) {
+    disconnectNapplus();
+    return;
+  }
+
+  const hcode = document.getElementById('hcode').value.trim();
+  const apiKey = document.getElementById('apiKey').value.trim();
+
+  if (!hcode) { showToast('err', 'กรุณาระบุ HCODE'); return; }
+  if (hcode.length !== 5) { showToast('err', 'HCODE ต้องเป็น 5 หลัก'); return; }
+  if (!apiKey) { showToast('err', 'กรุณาระบุ NAPPLUS API Key (Token)'); return; }
+
+  napplusConnected = true;
+  saveNapplusConfig();
+
+  const btn = document.getElementById('napplusConnectBtn');
+  btn.textContent = 'Disconnect NAPPLUS';
+  btn.classList.add('connected');
+
+  document.getElementById('napplusDot').className = 'status-dot ok';
+  document.getElementById('napplusStatusTxt').textContent = `Connected: LAB${hcode}`;
+  document.getElementById('napplusStatusTxt').style.color = 'var(--success)';
+
+  // Lock fields
+  document.getElementById('hcode').readOnly = true;
+  document.getElementById('apiKey').readOnly = true;
+
+  updateSendBtnState();
+  showToast('ok', `NAPPLUS Connected: LAB${hcode}`);
+}
+
+function disconnectNapplus() {
+  napplusConnected = false;
+
+  const btn = document.getElementById('napplusConnectBtn');
+  btn.textContent = 'Connect NAPPLUS';
+  btn.classList.remove('connected');
+
+  document.getElementById('napplusDot').className = 'status-dot';
+  document.getElementById('napplusStatusTxt').textContent = 'Not Connected';
+  document.getElementById('napplusStatusTxt').style.color = 'var(--text-muted)';
+
+  // Unlock fields
+  document.getElementById('hcode').readOnly = false;
+  document.getElementById('apiKey').readOnly = false;
+
+  updateSendBtnState();
+  showToast('info', 'NAPPLUS Disconnected');
+}
+
+// Convert test_result string to JSON object per LAB_TYPE (spec page 6)
+// HIV/PCR: {"result1":"Positive"}, CD4: {"result1":"20.0","result2":"350"}
+// VL: {"result1":">","result2":"99.9","result3":"copies/ml"}, BC: {"WBC":"4500"}
+function formatTestResult(labType, rawResult) {
+  // Already a proper object
+  if (rawResult && typeof rawResult === 'object' && !Array.isArray(rawResult)) {
+    return rawResult;
+  }
+
+  const val = String(rawResult ?? '').trim();
+  if (!val) return {};
+
+  // Try parse JSON string
+  if (val.startsWith('{')) {
+    try { return JSON.parse(val); } catch(e) {}
+  }
+
+  switch (String(labType)) {
+    case '101': // ANTIHIV
+    case '102': // PCR
+      return { result1: val };
+    case '201': // CD4 - expect "cd4%, cd4count" or single value
+      if (val.includes(',')) {
+        const parts = val.split(',').map(s => s.trim());
+        return { result1: parts[0] || '', result2: parts[1] || '' };
+      }
+      return { result1: val };
+    case '202': // Viral Load - expect "sign, number, unit" or single value
+      if (val.includes(',')) {
+        const parts = val.split(',').map(s => s.trim());
+        return { result1: parts[0] || '', result2: parts[1] || '', result3: parts[2] || 'copies/ml' };
+      }
+      return { result1: '', result2: val, result3: 'copies/ml' };
+    case '204': // Blood Chemistry - value is for specific LAB_ITEM
+      return { result1: val };
+    default:
+      return { result1: val };
+  }
+}
+
+function buildLabResultPayloads() {
+  const hcode = document.getElementById('hcode').value.trim();
+  const dateFrom = document.getElementById('dateFrom').value || todayStr();
+  const dateTo = document.getElementById('dateTo').value || todayStr();
+  const beFrom = toBEDate(dateFrom);
+  const beTo = toBEDate(dateTo);
+  const data = filteredData;
+
+  // Group by LAB_TYPE - one payload per LAB_TYPE
+  const grouped = {};
+  data.forEach(row => {
+    const labType = String(row.lab_type || row.LAB_TYPE || '');
+    if (!grouped[labType]) grouped[labType] = [];
+    grouped[labType].push(row);
+  });
+
+  const payloads = [];
+  for (const [labType, rows] of Object.entries(grouped)) {
+    const results = rows.map(row => {
+      const rawResult = row.test_result ?? row.TEST_RESULT ?? '';
+      const testResult = formatTestResult(labType, rawResult);
+
+      const requestId = buildNapplusRequestId(hcode, row);
+
+      return {
+        LAB_TYPE: String(labType),
+        LAB_REQUEST_ID: requestId,
+        RESULT_DATE: String(row.request_date ?? row.REQUEST_DATE ?? ''),
+        HCODE_LAB: String(row.hcode_lab ?? row.HCODE_LAB ?? hcode),
+        HCODE_LAB_OTHER: '',
+        IS_DETECTED: rawResult ? '1' : '0',
+        TEST_RESULT: testResult,
+        REMARK_NODETECTED: String(row.remark_nodetected ?? row.REMARK_NODETECTED ?? ''),
+        LAB_ITEM: String(row.lab_item ?? row.LAB_ITEM ?? '')
+      };
+    });
+
+    // HEADER per spec 9.2: NO LAB_REQUEST_ID in HEADER
+    payloads.push({
+      HEADER: {
+        HCODE_LAB: String(hcode),
+        LAB_TYPE: String(labType),
+        RESULT_DATE_FROM: String(beFrom),
+        RESULT_DATE_TO: String(beTo)
+      },
+      LAB_RESULT: results
+    });
+  }
+
+  return payloads;
+}
+
+function getTodayBE() {
+  const d = new Date();
+  const y = d.getFullYear() + 543;
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${y}${m}${dd}`;
+}
+
+// Build NAPPLUS LAB_REQUEST_ID: BL-{HCODE}-{yyMM}-{lab_order_number}
+function buildNapplusRequestId(hcode, row) {
+  const labOrderNum = String(row.lab_request_id ?? row.LAB_REQUEST_ID ?? '');
+  if (!labOrderNum) return '';
+
+  // Extract yyMM from request_date (BE format: 25690324 -> 6903)
+  const reqDate = String(row.request_date ?? row.REQUEST_DATE ?? '');
+  let yyMM = '';
+  if (reqDate.length === 8) {
+    yyMM = reqDate.substring(2, 6); // 25690324 -> 6903
+  } else {
+    // fallback: current date BE
+    const now = new Date();
+    const beYear = String(now.getFullYear() + 543).substring(2);
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    yyMM = beYear + mm;
+  }
+
+  return `BL-${hcode}-${yyMM}-${labOrderNum}`;
+}
+
+async function sendReport() {
+  if (!napplusConnected) { showToast('err', 'กรุณา Connect NAPPLUS ก่อน (ตั้งค่า)'); return; }
+  if (filteredData.length === 0) { showToast('err', 'ไม่มีข้อมูลสำหรับส่ง'); return; }
+
+  const hcode = document.getElementById('hcode').value.trim();
+  const apiKey = document.getElementById('apiKey').value.trim();
+
+  const headerBtn = document.getElementById('headerSendBtn');
+  const statusDiv = document.getElementById('sendStatus');
+  headerBtn.disabled = true;
+  headerBtn.textContent = 'Sending...';
+
+  const payloads = buildLabResultPayloads();
+  const url = NAPPLUS_BASE_URL + '/set_lab_result';
+  const username = `LAB${hcode}`;
+
+  const startTime = Date.now();
+  const allResponses = [];
+  let successCount = 0;
+  let errorCount = 0;
+  let totalRows = 0;
+
+  // Send one request per LAB_TYPE
+  for (const payload of payloads) {
+    totalRows += payload.LAB_RESULT.length;
+    let response;
+
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT);
+
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'UserName': username,
+          'Password': apiKey,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!res.ok && res.status === 401) {
+        response = { RESULT: '0', RESULT_MESSAGE: 'Unauthorized - API Key ไม่ถูกต้องหรือหมดอายุ', _http_status: 401 };
+      } else {
+        response = await res.json();
+        response._http_status = res.status;
+      }
+    } catch (e) {
+      const isTimeout = e.name === 'AbortError';
+      response = {
+        RESULT: '0',
+        RESULT_MESSAGE: isTimeout ? `Timeout after ${DEFAULT_TIMEOUT/1000}s` : `Connection Error: ${e.message}`,
+        _http_status: 0
+      };
+    }
+
+    const isOk = response.RESULT === '1' || response.RESULT === 1;
+    if (isOk) successCount++; else errorCount++;
+
+    allResponses.push({
+      labType: payload.HEADER.LAB_TYPE,
+      rowCount: payload.LAB_RESULT.length,
+      payload: payload,
+      response: response,
+      ok: isOk
+    });
+  }
+
+  const elapsed = Date.now() - startTime;
+  headerBtn.textContent = 'Send Report to NAPPLUS';
+  updateSendBtnState();
+
+  const allOk = errorCount === 0;
+
+  // Show status in sidebar
+  statusDiv.style.display = 'block';
+  statusDiv.className = `send-status ${allOk ? 'ok' : 'err'}`;
+  statusDiv.innerHTML = allOk
+    ? `OK - ส่งสำเร็จ ${totalRows} รายการ / ${payloads.length} LAB_TYPE (${elapsed}ms)`
+    : `${successCount} สำเร็จ / ${errorCount} ล้มเหลว (${elapsed}ms)`;
+
+  // Show report tab
+  document.getElementById('reportTabBtn').style.display = '';
+  renderReportTab(allResponses, elapsed);
+
+  showToast(
+    allOk ? 'ok' : 'err',
+    allOk
+      ? `Send Report สำเร็จ (${elapsed}ms) - ${totalRows} รายการ / ${payloads.length} LAB_TYPE`
+      : `Send Report: ${successCount} สำเร็จ, ${errorCount} ล้มเหลว`
+  );
+}
+
+function renderReportTab(allResponses, elapsed) {
+  const el = document.getElementById('reportContent');
+  const hcode = document.getElementById('hcode').value.trim();
+
+  let html = `<span class="json-key">// == Send Report Summary (${elapsed}ms) ==</span>
+<span class="json-key">POST</span> <span class="json-string">${NAPPLUS_BASE_URL}/set_lab_result</span>
+<span class="json-key">UserName:</span> <span class="json-string">LAB${escHtml(hcode)}</span>
+<span class="json-key">Total requests:</span> <span class="json-number">${allResponses.length}</span>
+`;
+
+  allResponses.forEach((item, i) => {
+    const display = { ...item.response };
+    delete display._http_status;
+
+    html += `
+<span class="json-key">// == [${i + 1}] LAB_TYPE ${item.labType} - ${item.rowCount} rows ==</span>
+<span class="${item.ok ? 'json-bool' : 'json-null'}">${item.ok ? 'SUCCESS' : 'ERROR'}: ${escHtml(item.response.RESULT_MESSAGE || '')}</span>
+
+<span class="json-key">Request Body:</span>
+${syntaxHighlight(JSON.stringify(item.payload, null, 2))}
+
+<span class="json-key">Response:</span>
+${syntaxHighlight(JSON.stringify(display, null, 2))}
+`;
+  });
+
+  el.innerHTML = html;
+}
+
+// == Check LAB Request ==
+async function checkLabRequest() {
+  if (!napplusConnected) {
+    showToast('err', 'กรุณา Connect NAPPLUS ก่อน (ตั้งค่า)');
+    return;
+  }
+
+  const hcode = document.getElementById('hcode').value.trim();
+  const apiKey = document.getElementById('apiKey').value.trim();
+  const dateFrom = document.getElementById('dateFrom').value || todayStr();
+  const dateTo = document.getElementById('dateTo').value || todayStr();
+  const beFrom = toBEDate(dateFrom);
+  const beTo = toBEDate(dateTo);
+
+  // Determine lab types to check
+  const labTypesToCheck = activeLabTypes.length > 0
+    ? activeLabTypes
+    : ['101','102','201','202','203','204'];
+
+  const btn = document.getElementById('checkBtn');
+  btn.disabled = true;
+  btn.textContent = 'กำลังตรวจสอบ...';
+
+  const allResults = [];
+  const startTime = Date.now();
+  let lastError = null;
+
+  for (const labType of labTypesToCheck) {
+    const payload = {
+      HEADER: {
+        HCODE_REQUEST: hcode,
+        HCODE_LAB: hcode,
+        LAB_TYPE: labType,
+        PATIENT_ID: "",
+        LAB_REQUEST_ID: "",
+        REQUEST_DATE_FROM: beFrom,
+        REQUEST_DATE_TO: beTo,
+        LAB_STATUS: "0"
+      }
+    };
+
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT);
+
+      const res = await fetch(NAPPLUS_BASE_URL + '/get_lab_request', {
+        method: 'POST',
+        headers: {
+          'UserName': `LAB${hcode}`,
+          'Password': apiKey,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+      const data = await res.json();
+
+      if ((data.RESULT === '1' || data.RESULT === 1) && Array.isArray(data.LAB_REQUEST)) {
+        allResults.push(...data.LAB_REQUEST);
+      } else if (data.RESULT !== '1' && data.RESULT !== 1) {
+        lastError = data.RESULT_MESSAGE || 'Unknown error';
+      }
+    } catch (e) {
+      lastError = e.name === 'AbortError' ? 'Timeout' : e.message;
+    }
+  }
+
+  const elapsed = Date.now() - startTime;
+  btn.disabled = false;
+  btn.textContent = 'ตรวจสอบข้อมูล';
+
+  // Show results
+  document.getElementById('checkEmpty').style.display = 'none';
+  const countEl = document.getElementById('checkCount');
+  countEl.style.display = '';
+  countEl.textContent = `${allResults.length} รายการ`;
+  document.getElementById('checkElapsed').textContent = `${elapsed}ms`;
+
+  renderCheckTable(allResults);
+
+  if (allResults.length > 0) {
+    showToast('ok', `ตรวจสอบสำเร็จ - ${allResults.length} รายการ (${elapsed}ms)`);
+  } else if (lastError) {
+    showToast('err', `Error: ${lastError}`);
+  } else {
+    showToast('info', `ไม่พบข้อมูล LAB_REQUEST ในช่วงวันที่ที่เลือก`);
+  }
+}
+
+function renderCheckTable(data) {
+  const wrap = document.getElementById('checkTableWrap');
+  wrap.style.display = 'block';
+  wrap.innerHTML = '';
+
+  if (data.length === 0) {
+    wrap.innerHTML = '<div style="padding:24px; text-align:center; color:var(--text-muted); font-size:13px">ไม่พบข้อมูล LAB_REQUEST (0 records)</div>';
+    return;
+  }
+
+  const table = document.createElement('table');
+  table.className = 'result-table';
+
+  // Get all fields - exclude sensitive fields
+  const excludeFields = ['LINK', 'CODE', 'link', 'code'];
+  const fields = [];
+  data.forEach(row => {
+    Object.keys(row).forEach(k => {
+      if (!fields.includes(k) && !excludeFields.includes(k)) fields.push(k);
+    });
+  });
+
+  const thead = document.createElement('thead');
+  thead.innerHTML = `<tr>${fields.map(f => `<th>${escHtml(f)}</th>`).join('')}</tr>`;
+  table.appendChild(thead);
+
+  const tbody = document.createElement('tbody');
+  data.forEach(row => {
+    const tr = document.createElement('tr');
+    fields.forEach(f => {
+      const td = document.createElement('td');
+      const val = row[f];
+      if (val === null || val === undefined || val === '') {
+        td.innerHTML = '<span class="null-val">-</span>';
+      } else if (typeof val === 'object') {
+        td.textContent = JSON.stringify(val);
+        td.style.color = 'var(--purple)';
+        td.title = JSON.stringify(val, null, 2);
+      } else if (typeof val === 'number') {
+        td.innerHTML = `<span class="num-val">${val}</span>`;
+      } else {
+        td.textContent = val;
+      }
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+  wrap.appendChild(table);
+}
+
+// == Check LAB Result ==
+async function checkLabResult() {
+  if (!napplusConnected) {
+    showToast('err', 'กรุณา Connect NAPPLUS ก่อน (ตั้งค่า)');
+    return;
+  }
+
+  const hcode = document.getElementById('hcode').value.trim();
+  const apiKey = document.getElementById('apiKey').value.trim();
+  const dateFrom = document.getElementById('dateFrom').value || todayStr();
+  const dateTo = document.getElementById('dateTo').value || todayStr();
+  const beFrom = toBEDate(dateFrom);
+  const beTo = toBEDate(dateTo);
+
+  const labTypesToCheck = activeLabTypes.length > 0
+    ? activeLabTypes
+    : ['101','102','201','202','203','204'];
+
+  const btn = document.getElementById('resultBtn');
+  btn.disabled = true;
+  btn.textContent = 'กำลังดึงผลตรวจ...';
+
+  const allResults = [];
+  const startTime = Date.now();
+  let lastError = null;
+
+  for (const labType of labTypesToCheck) {
+    const payload = {
+      HEADER: {
+        HCODE_LAB: hcode,
+        LAB_TYPE: labType,
+        LAB_REQUEST_ID: "",
+        RESULT_DATE_FROM: beFrom,
+        RESULT_DATE_TO: beTo,
+        LAB_STATUS: "1"
+      }
+    };
+
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT);
+
+      const res = await fetch(NAPPLUS_BASE_URL + '/get_lab_result', {
+        method: 'POST',
+        headers: {
+          'UserName': `LAB${hcode}`,
+          'Password': apiKey,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+      const data = await res.json();
+
+      if ((data.RESULT === '1' || data.RESULT === 1) && Array.isArray(data.LAB_RESULT)) {
+        allResults.push(...data.LAB_RESULT);
+      } else if (data.RESULT !== '1' && data.RESULT !== 1) {
+        lastError = data.RESULT_MESSAGE || 'Unknown error';
+      }
+    } catch (e) {
+      lastError = e.name === 'AbortError' ? 'Timeout' : e.message;
+    }
+  }
+
+  const elapsed = Date.now() - startTime;
+  btn.disabled = false;
+  btn.textContent = 'ดึงผลตรวจ';
+
+  document.getElementById('resultEmpty').style.display = 'none';
+  const countEl = document.getElementById('resultCount');
+  countEl.style.display = '';
+  countEl.textContent = `${allResults.length} รายการ`;
+  document.getElementById('resultElapsed').textContent = `${elapsed}ms`;
+
+  renderResultTable(allResults);
+
+  if (allResults.length > 0) {
+    showToast('ok', `ดึงผลตรวจสำเร็จ - ${allResults.length} รายการ (${elapsed}ms)`);
+  } else if (lastError) {
+    showToast('err', `Error: ${lastError}`);
+  } else {
+    showToast('info', 'ไม่พบผลตรวจ LAB_RESULT ในช่วงวันที่ที่เลือก');
+  }
+}
+
+function renderResultTable(data) {
+  const wrap = document.getElementById('resultTableWrap');
+  wrap.style.display = 'block';
+  wrap.innerHTML = '';
+
+  if (data.length === 0) {
+    wrap.innerHTML = '<div style="padding:24px; text-align:center; color:var(--text-muted); font-size:13px">ไม่พบผลตรวจ LAB_RESULT (0 records)</div>';
+    return;
+  }
+
+  const table = document.createElement('table');
+  table.className = 'result-table';
+
+  const excludeFields = ['LINK', 'CODE', 'link', 'code'];
+  const fields = [];
+  data.forEach(row => {
+    Object.keys(row).forEach(k => {
+      if (!fields.includes(k) && !excludeFields.includes(k)) fields.push(k);
+    });
+  });
+
+  const thead = document.createElement('thead');
+  thead.innerHTML = `<tr>${fields.map(f => `<th>${escHtml(f)}</th>`).join('')}</tr>`;
+  table.appendChild(thead);
+
+  const tbody = document.createElement('tbody');
+  data.forEach(row => {
+    const tr = document.createElement('tr');
+    fields.forEach(f => {
+      const td = document.createElement('td');
+      const val = row[f];
+      if (val === null || val === undefined || val === '') {
+        td.innerHTML = '<span class="null-val">-</span>';
+      } else if (typeof val === 'object') {
+        td.textContent = JSON.stringify(val);
+        td.style.color = 'var(--purple)';
+        td.title = JSON.stringify(val, null, 2);
+      } else if (typeof val === 'number') {
+        td.innerHTML = `<span class="num-val">${val}</span>`;
+      } else {
+        td.textContent = val;
+      }
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+  wrap.appendChild(table);
+}
+
 // == Toast ==
 function showToast(type, msg) {
   const wrap = document.getElementById('toastWrap');
@@ -1116,12 +1857,44 @@ function showToast(type, msg) {
   setTimeout(() => toast.remove(), 4000);
 }
 
+// == Settings Toggle ==
+let settingsOpen = false;
+
+function toggleSettings() {
+  settingsOpen = !settingsOpen;
+  const btn = document.getElementById('settingsBtn');
+  btn.classList.toggle('active', settingsOpen);
+  document.getElementById('sectionSession').classList.toggle('open', settingsOpen);
+  document.getElementById('sectionNapplus').classList.toggle('open', settingsOpen);
+}
+
+// == NAPPLUS Config Persistence (localStorage) ==
+const LS_HCODE = 'napplus-hcode';
+const LS_APIKEY = 'napplus-apikey';
+
+function saveNapplusConfig() {
+  const hcode = document.getElementById('hcode').value.trim();
+  const apiKey = document.getElementById('apiKey').value.trim();
+  if (hcode) localStorage.setItem(LS_HCODE, hcode);
+  if (apiKey) localStorage.setItem(LS_APIKEY, apiKey);
+}
+
+function loadNapplusConfig() {
+  const hcode = localStorage.getItem(LS_HCODE) || '';
+  const apiKey = localStorage.getItem(LS_APIKEY) || '';
+  if (hcode) document.getElementById('hcode').value = hcode;
+  if (apiKey) document.getElementById('apiKey').value = apiKey;
+}
+
 // == Init ==
 function init() {
   // Set default dates to today
   const today = todayStr();
   document.getElementById('dateFrom').value = today;
   document.getElementById('dateTo').value = today;
+
+  // Load saved NAPPLUS config
+  loadNapplusConfig();
 
   // Session ID watcher
   document.getElementById('sessionId').addEventListener('input', updateSessionStatus);
@@ -1130,8 +1903,14 @@ function init() {
   document.getElementById('dateFrom').addEventListener('change', renderSqlPreview);
   document.getElementById('dateTo').addEventListener('change', renderSqlPreview);
 
+  // NAPPLUS fields: update username + save to localStorage
+  document.getElementById('hcode').addEventListener('input', () => { updateNapplusUsername(); saveNapplusConfig(); });
+  document.getElementById('apiKey').addEventListener('input', saveNapplusConfig);
+  updateNapplusUsername();
+
   // Render initial SQL preview
   renderSqlPreview();
+  updateSendBtnState();
 
   // Priority 1: URL parameter
   const urlSessionId = getSessionFromUrl();

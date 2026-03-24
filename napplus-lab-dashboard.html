@@ -413,6 +413,22 @@
   }
   .toolbar-btn:hover { border-color: var(--text-muted); color: var(--text); }
 
+  .export-btn {
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: 'Sarabun', sans-serif;
+  }
+  .export-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .export-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .export-btn:disabled:hover { border-color: var(--border); color: var(--text-muted); }
+
   .run-btn {
     margin-left: auto;
     padding: 8px 24px;
@@ -1012,6 +1028,10 @@
         <button class="resp-tab" onclick="showTab('json', this)">{ } JSON</button>
         <button class="resp-tab" onclick="showTab('request', this)">Request</button>
         <button class="resp-tab" onclick="showTab('sql', this)">SQL Source</button>
+        <span style="flex:1"></span>
+        <button class="export-btn" id="exportCsvBtn" onclick="exportCsv()" disabled>Export CSV</button>
+        <button class="export-btn" id="exportJsonBtn" onclick="exportJson()" disabled>Export JSON</button>
+        <button class="export-btn" id="copyJsonBtn" onclick="copyJson()" disabled>Copy JSON</button>
       </div>
 
       <div class="response-content active" id="tab-table">
@@ -1583,6 +1603,11 @@ async function sendRequest() {
   renderRequestTab(lastRequest);
 
   const isOk = response.RESULT === '1' || response.RESULT === 1;
+
+  // Enable/disable export buttons
+  document.getElementById('exportCsvBtn').disabled = !isOk;
+  document.getElementById('exportJsonBtn').disabled = !isOk;
+  document.getElementById('copyJsonBtn').disabled = !isOk;
   showToast(
     isOk ? 'ok' : 'err',
     isOk
@@ -1795,6 +1820,78 @@ function clearHistory() {
   renderHistory();
 }
 
+// == Export ==
+function getResponseData() {
+  if (!lastResponse) return [];
+  const api = API_ENDPOINTS[currentApi];
+  const dataKey = api.name === 'get_lab_request' ? 'LAB_REQUEST'
+                : api.name === 'set_lab_result' ? 'LAB_RESULT_ERROR'
+                : 'LAB_RESULT';
+  const data = lastResponse[dataKey] || [];
+  return Array.isArray(data) ? data : [];
+}
+
+function exportCsv() {
+  const data = getResponseData();
+  if (data.length === 0) { showToast('err', 'ไม่มีข้อมูลให้ Export'); return; }
+
+  const fields = [];
+  data.forEach(row => {
+    Object.keys(row).forEach(k => { if (!fields.includes(k)) fields.push(k); });
+  });
+
+  let csv = fields.map(f => `"${f}"`).join(',') + '\n';
+  data.forEach(row => {
+    csv += fields.map(f => {
+      let v = row[f];
+      if (v === null || v === undefined) return '';
+      if (typeof v === 'object') v = JSON.stringify(v);
+      return `"${String(v).replace(/"/g, '""')}"`;
+    }).join(',') + '\n';
+  });
+
+  const bom = '\uFEFF';
+  const blob = new Blob([bom + csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const api = API_ENDPOINTS[currentApi];
+  a.download = `napplus-${api.name}-${currentLabType}-${getTodayBE()}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('ok', `Export CSV สำเร็จ (${data.length} rows)`);
+}
+
+function exportJson() {
+  const data = getResponseData();
+  if (data.length === 0) { showToast('err', 'ไม่มีข้อมูลให้ Export'); return; }
+
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const api = API_ENDPOINTS[currentApi];
+  a.download = `napplus-${api.name}-${currentLabType}-${getTodayBE()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('ok', `Export JSON สำเร็จ (${data.length} rows)`);
+}
+
+function copyJson() {
+  const data = getResponseData();
+  if (data.length === 0) { showToast('err', 'ไม่มีข้อมูลให้ Copy'); return; }
+
+  const json = JSON.stringify(data, null, 2);
+  navigator.clipboard.writeText(json).then(() => {
+    showToast('ok', `Copy JSON สำเร็จ (${data.length} rows)`);
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = json; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    showToast('ok', `Copy JSON สำเร็จ (${data.length} rows)`);
+  });
+}
+
 // == Toast ==
 function showToast(type, msg) {
   const wrap = document.getElementById('toastWrap');
@@ -1808,40 +1905,12 @@ function showToast(type, msg) {
 // == Source SQL ==
 function getSourceSql() {
   const today = new Date();
-  const yyyy = today.getFullYear();
-  const mm = String(today.getMonth() + 1).padStart(2, '0');
-  const dd = String(today.getDate()).padStart(2, '0');
-  const dateStr = `${yyyy}-${mm}-${dd}`;
+  const y = today.getFullYear() + 543;
+  const m = String(today.getMonth() + 1).padStart(2, '0');
+  const d = String(today.getDate()).padStart(2, '0');
+  const beDate = `${y}${m}${d}`;
 
-  // Determine lab type filter based on current selection or all
-  let labFilter = "('101','102','201','202','203','204')";
-
-  return `SELECT i.gen_order_prefix::INT as LAB_TYPE,
-(SELECT hospitalcode FROM opdconfig limit 1)::TEXT AS HCODE_REQUEST,
-(SELECT hospitalcode FROM opdconfig limit 1)::TEXT AS HCODE_LAB,
-(CASE WHEN i.gen_order_prefix in('101','102') then p.cid ELSE '' END)::TEXT AS PATIENT_ID ,
-h.lab_order_number::TEXT AS LAB_REQUEST_ID,
-TO_CHAR(
-  (EXTRACT(YEAR FROM h.order_date) + 543)::int * 10000 +
-  EXTRACT(MONTH FROM h.order_date)::int * 100 +
-  EXTRACT(DAY FROM h.order_date)::int,
-  'FM00000000'
-)::TEXT AS REQUEST_DATE,
-ptt.name::TEXT as PATIENT_RIGHT,
-'Y'::TEXT AS REQUEST_APPROVED_STATUS,
-'1'::TEXT AS LAB_STATUS,
-i.lab_items_name::TEXT AS LAB_ITEM,
-''::TEXT AS REQUEST_APPROVED_REMARK ,
-o.lab_order_result::TEXT AS TEST_RESULT,
-''::TEXT AS REMARK_NODETECTED
- FROM lab_head h
-LEFT JOIN lab_order o on o.lab_order_number = h.lab_order_number
-INNER JOIN lab_items i on i.lab_items_code = o.lab_items_code
-LEFT JOIN patient p on p.hn = h.hn
-LEFT JOIN ovst ov on ov.vn = h.vn
-LEFT JOIN pttype ptt on ptt.pttype = ov.pttype
-WHERE h.order_date BETWEEN '${dateStr}' AND '${dateStr}'
-AND i.gen_order_prefix in${labFilter} ;`;
+  return `SELECT * FROM bms_napplus WHERE request_date BETWEEN '${beDate}' AND '${beDate}'`;
 }
 
 function highlightSql(sql) {
