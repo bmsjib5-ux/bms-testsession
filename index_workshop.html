@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BMS Workshop Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2128;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-muted: #7d8590;
+    --primary: #1f6feb;
+    --primary-glow: rgba(31,111,235,0.15);
+    --success: #3fb950;
+    --success-bg: rgba(63,185,80,0.1);
+    --accent: #58a6ff;
+    --teal: #39d353;
+    --purple: #bc8cff;
+    --orange: #ffa657;
+    --pink: #f778ba;
+    --error: #f85149;
+    --cyan: #79c0ff;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Sarabun', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .header {
+    width: 100%;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 24px;
+    text-align: center;
+  }
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    position: relative;
+  }
+  .header-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 6px;
+  }
+  .logo-shield {
+    width: 40px; height: 40px;
+    background: linear-gradient(135deg, #1f6feb, #79c0ff);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .header h1 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+  .header h1 span { color: var(--cyan); }
+  .header-sub {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+  .back-link {
+    position: absolute;
+    left: 0;
+    font-size: 12px;
+    color: var(--accent);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--surface2);
+    transition: all 0.15s;
+  }
+  .back-link:hover { border-color: var(--accent); text-decoration: none; }
+
+  .container {
+    max-width: 900px;
+    width: 100%;
+    padding: 32px 24px;
+  }
+
+  /* Session Quick Connect */
+  .session-bar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .session-bar-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+  .session-bar input {
+    flex: 1;
+    min-width: 200px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    transition: border-color 0.15s;
+  }
+  .session-bar input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-glow);
+  }
+  .session-bar-hint {
+    font-size: 11px;
+    color: var(--text-muted);
+    width: 100%;
+    margin-top: -4px;
+  }
+
+  .section-title {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    border-top: 1px solid var(--border);
+  }
+
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: 12px 12px 0 0;
+    transition: opacity 0.2s;
+  }
+  .card:hover {
+    border-color: var(--primary);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  }
+
+  .card.blue::before { background: linear-gradient(90deg, #1f6feb, #58a6ff); opacity: 1; }
+  .card.green::before { background: linear-gradient(90deg, #3fb950, #39d353); opacity: 1; }
+  .card.purple::before { background: linear-gradient(90deg, #8b5cf6, #bc8cff); opacity: 1; }
+  .card.pink::before { background: linear-gradient(90deg, #f778ba, #ffa657); opacity: 1; }
+  .card.cyan::before { background: linear-gradient(90deg, #58a6ff, #79c0ff); opacity: 1; }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .card-icon {
+    width: 44px; height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 700;
+    flex-shrink: 0;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .card.blue .card-icon { background: var(--primary-glow); color: var(--accent); }
+  .card.green .card-icon { background: var(--success-bg); color: var(--success); }
+  .card.purple .card-icon { background: rgba(188,140,255,0.12); color: var(--purple); }
+  .card.pink .card-icon { background: rgba(247,120,186,0.12); color: var(--pink); }
+  .card.cyan .card-icon { background: rgba(121,192,255,0.12); color: var(--cyan); }
+
+  .card-title {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+  .card-version {
+    font-size: 10px;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    padding: 1px 6px;
+    background: var(--surface2);
+    border-radius: 3px;
+  }
+
+  .card-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  .card-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .card-tag {
+    font-size: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: var(--surface2);
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+  }
+
+  .card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: auto;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+  }
+  .card-method {
+    font-size: 10px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+  .card-method.get { background: var(--success-bg); color: var(--success); }
+  .card-method.post { background: rgba(210,153,34,0.12); color: var(--orange); }
+  .card-method.mixed { background: var(--primary-glow); color: var(--accent); }
+
+  .card-open {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 20px;
+    color: var(--text-muted);
+    font-size: 12px;
+    border-top: 1px solid var(--border);
+    width: 100%;
+    margin-top: auto;
+  }
+  .footer a { color: var(--accent); text-decoration: none; }
+  .footer a:hover { text-decoration: underline; }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <a class="back-link" href="index.html">&larr; Main Hub</a>
+  </div>
+  <div class="header-logo">
+    <div class="logo-shield">WS</div>
+    <h1>BMS <span>Workshop</span> Hub</h1>
+  </div>
+  <div class="header-sub">Workshop Dashboards - รายงานสรุปการอบรมระบบงานห้องปฏิบัติการ</div>
+</div>
+
+<div class="container">
+
+  <!-- Session Quick Connect -->
+  <div class="session-bar">
+    <span class="session-bar-label">BMS Session ID</span>
+    <input type="text" id="sessionInput" placeholder="CB411DB0-B121-43C6-B795-80ADECE6A13C"
+      spellcheck="false" autocomplete="off">
+    <div class="session-bar-hint">
+      Paste your Session ID here, then click any dashboard below to open with auto-connect
+    </div>
+  </div>
+
+  <!-- Workshop Dashboards -->
+  <div class="section-title">Workshop Reports (28 รายงาน)</div>
+  <div class="card-grid">
+
+    <a class="card blue" href="#" onclick="openDashboard('bms-lab-workshop.html', event)">
+      <div class="card-header"><div class="card-icon">WS</div><div><div class="card-title">LAB Workshop</div><span class="card-version">v1.0</span></div></div>
+      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานห้อง LAB<br>จำนวน HN, สั่ง Lab, รับ Specimen, รายงานผล</div>
+      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">LAB</span><span class="card-tag">Chart</span></div>
+      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+    </a>
+
+    <a class="card blue" href="#" onclick="openDashboard('bms-ws-admit.html', event)">
+      <div class="card-header"><div class="card-icon">AD</div><div><div class="card-title">Admit Workshop</div><span class="card-version">v1.0</span></div></div>
+      <div class="card-desc">สรุปการทำ Work Shop - ระบบงาน Admit</div>
+      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Admit</span></div>
+      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+    </a>
+
+    <a class="card green" href="#" onclick="openDashboard('bms-ws-blood-bank.html', event)">
+      <div class="card-header"><div class="card-icon">BB</div><div><div class="card-title">Blood Bank Workshop</div><span class="card-version">v1.0</span></div></div>
+      <div class="card-desc">สรุปการทำ Work Shop - ระบบงาน Blood Bank</div>
+      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Blood Bank</span></div>
+      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+    </a>
+
+    <a class="card purple" href="#" onclick="openDashboard('bms-ws-ipd.html', event)">
+      <div class="card-header"><div class="card-icon">IP</div><div><div class="card-title">IPD Workshop</div><span class="card-version">v1.0</span></div></div>
+      <div class="card-desc">สรุปการทำ Work Shop - ระบบงาน IPD</div>
+      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">IPD</span></div>
+      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+    </a>
+
+    <a class="card pink" href="#" onclick="openDashboard('bms-ws-xray.html', event)">
+      <div class="card-header"><div class="card-icon">XR</div><div><div class="card-title">X-Ray Workshop</div><span class="card-version">v1.0</span></div></div>
+      <div class="card-desc">สรุปการทำ Work Shop - ระบบงาน X-Ray</div>
+      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">X-Ray</span></div>
+      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+    </a>
+
+    <a class="card blue" href="#" onclick="openDashboard('bms-ws-pathology.html', event)">
+      <div class="card-header"><div class="card-icon">PA</div><div><div class="card-title">Pathology Workshop</div><span class="card-version">v1.0</span></div></div>
+      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานชิ้นเนื้อ</div>
+      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Pathology</span></div>
+      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+    </a>
+
+    <a class="card green" href="#" onclick="openDashboard('bms-ws-finance.html', event)">
+      <div class="card-header"><div class="card-icon">FN</div><div><div class="card-title">Finance Workshop</div><span class="card-version">v1.0</span></div></div>
+      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานการเงิน</div>
+      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Finance</span></div>
+      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+    </a>
+
+    <a class="card purple" href="#" onclick="openDashboard('bms-ws-er.html', event)">
+      <div class="card-header"><div class="card-icon">ER</div><div><div class="card-title">ER Workshop</div><span class="card-version">v1.0</span></div></div>
+      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานฉุกเฉิน ER</div>
+      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">ER</span></div>
+      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+    </a>
+
+    <a class="card pink" href="#" onclick="openDashboard('bms-ws-screening.html', event)">
+      <div class="card-header"><div class="card-icon">SC</div><div><div class="card-title">Screening Workshop</div><span class="card-version">v1.0</span></div></div>
+      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานซักประวัติ</div>
+      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Screening</span></div>
+      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+    </a>
+
+    <a class="card blue" href="#" onclick="openDashboard('bms-ws-screening-bc.html', event)">
+      <div class="card-header"><div class="card-icon">RG</div><div><div class="card-title">Registration Workshop</div><span class="card-version">v1.0</span></div></div>
+      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานซักประวัติ-bc</div>
+      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Registration</span></div>
+      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+    </a>
+
+    <a class="card green" href="#" onclick="openDashboard('bms-ws-checkup.html', event)">
+      <div class="card-header"><div class="card-icon">CU</div><div><div class="card-title">Checkup Workshop</div><span class="card-version">v1.0</span></div></div>
+      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานตรวจสุขภาพ</div>
+      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Checkup</span></div>
+      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+    </a>
+
+    <a class="card purple" href="#" onclick="openDashboard('bms-ws-hemodialysis.html', event)">
+      <div class="card-header"><div class="card-icon">HD</div><div><div class="card-title">Hemodialysis Workshop</div><span class="card-version">v1.0</span></div></div>
+      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานไตเทียม</div>
+      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Hemodialysis</span></div>
+      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+    </a>
+
+    <a class="card pink" href="#" onclick="openDashboard('bms-ws-dental.html', event)">
+      <div class="card-header"><div class="card-icon">DT</div><div><div class="card-title">Dental Workshop</div><span class="card-version">v1.0</span></div></div>
+      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานทันตกรรม</div>
+      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Dental</span></div>
+      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+    </a>
+
+    <a class="card blue" href="#" onclick="openDashboard('bms-ws-insurance.html', event)">
+      <div class="card-header"><div class="card-icon">IN</div><div><div class="card-title">Insurance Workshop</div><span class="card-version">v1.0</span></div></div>
+      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานประกัน</div>
+      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Insurance</span></div>
+      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+    </a>
+
+    <a class="card green" href="#" onclick="openDashboard('bms-ws-anesthesia.html', event)">
+      <div class="card-header"><div class="card-icon">AN</div><div><div class="card-title">Anesthesia Workshop</div><span class="card-version">v1.0</span></div></div>
+      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานวิสัญญี</div>
+      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Anesthesia</span></div>
+      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+    </a>
+
+    <a class="card purple" href="#" onclick="openDashboard('bms-ws-social-medicine.html', event)">
+      <div class="card-header"><div class="card-icon">SM</div><div><div class="card-title">Social Medicine Workshop</div><span class="card-version">v1.0</span></div></div>
+      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานเวชกรรมสังคม</div>
+      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Social Medicine</span></div>
+      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+    </a>
+
+    <a class="card pink" href="#" onclick="openDashboard('bms-ws-rehabilitation.html', event)">
+      <div class="card-header"><div class="card-icon">RH</div><div><div class="card-title">Rehabilitation Workshop</div><span class="card-version">v1.0</span></div></div>
+      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานเวชศาสตร์ฟื้นฟู</div>
+      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Rehabilitation</span></div>
+      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+    </a>
+
+    <a class="card blue" href="#" onclick="openDashboard('bms-ws-medical-stat.html', event)">
+      <div class="card-header"><div class="card-icon">MS</div><div><div class="card-title">Medical Statistics Workshop</div><span class="card-version">v1.0</span></div></div>
+      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานเวชสถิติ</div>
+      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Medical Statistics</span></div>
+      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+    </a>
+
+    <a class="card green" href="#" onclick="openDashboard('bms-ws-medical-record.html', event)">
+      <div class="card-header"><div class="card-icon">MR</div><div><div class="card-title">Medical Records Workshop</div><span class="card-version">v1.0</span></div></div>
+      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานเวชระเบียน</div>
+      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Medical Records</span></div>
+      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+    </a>
+
+    <a class="card purple" href="#" onclick="openDashboard('bms-ws-doctor.html', event)">
+      <div class="card-header"><div class="card-icon">DR</div><div><div class="card-title">Doctor Workshop</div><span class="card-version">v1.0</span></div></div>
+      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานแพทย์</div>
+      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Doctor</span></div>
+      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+    </a>
+
+    <a class="card pink" href="#" onclick="openDashboard('bms-ws-thai-medicine.html', event)">
+      <div class="card-header"><div class="card-icon">TM</div><div><div class="card-title">Thai Medicine Workshop</div><span class="card-version">v1.0</span></div></div>
+      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานแพทย์แผนไทย</div>
+      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Thai Medicine</span></div>
+      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+    </a>
+
+    <a class="card blue" href="#" onclick="openDashboard('bms-ws-nutrition.html', event)">
+      <div class="card-header"><div class="card-icon">NU</div><div><div class="card-title">Nutrition Workshop</div><span class="card-version">v1.0</span></div></div>
+      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานโภชนาการ</div>
+      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Nutrition</span></div>
+      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+    </a>
+
+    <a class="card green" href="#" onclick="openDashboard('bms-ws-health-promotion.html', event)">
+      <div class="card-header"><div class="card-icon">HP</div><div><div class="card-title">Health Promotion Workshop</div><span class="card-version">v1.0</span></div></div>
+      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานส่งเสริม</div>
+      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Health Promotion</span></div>
+      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+    </a>
+
+    <a class="card purple" href="#" onclick="openDashboard('bms-ws-labor-room.html', event)">
+      <div class="card-header"><div class="card-icon">LR</div><div><div class="card-title">Labor Room Workshop</div><span class="card-version">v1.0</span></div></div>
+      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานห้องคลอด</div>
+      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Labor Room</span></div>
+      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+    </a>
+
+    <a class="card pink" href="#" onclick="openDashboard('bms-ws-pharmacy-opd.html', event)">
+      <div class="card-header"><div class="card-icon">PH</div><div><div class="card-title">Pharmacy OPD Workshop</div><span class="card-version">v1.0</span></div></div>
+      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานห้องจ่ายยา</div>
+      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Pharmacy OPD</span></div>
+      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+    </a>
+
+    <a class="card blue" href="#" onclick="openDashboard('bms-ws-pharmacy-ipd.html', event)">
+      <div class="card-header"><div class="card-icon">PI</div><div><div class="card-title">Pharmacy IPD Workshop</div><span class="card-version">v1.0</span></div></div>
+      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานห้องจ่ายยา IPD</div>
+      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Pharmacy IPD</span></div>
+      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+    </a>
+
+    <a class="card green" href="#" onclick="openDashboard('bms-ws-exam-room.html', event)">
+      <div class="card-header"><div class="card-icon">EX</div><div><div class="card-title">Exam Room Workshop</div><span class="card-version">v1.0</span></div></div>
+      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานห้องตรวจ</div>
+      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Exam Room</span></div>
+      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+    </a>
+
+    <a class="card purple" href="#" onclick="openDashboard('bms-ws-operating-room.html', event)">
+      <div class="card-header"><div class="card-icon">OR</div><div><div class="card-title">Operating Room Workshop</div><span class="card-version">v1.0</span></div></div>
+      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานห้องผ่าตัด</div>
+      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Operating Room</span></div>
+      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+    </a>
+
+  </div>
+</div>
+
+<div class="footer">
+  BMS Workshop Hub &copy; 2024 &mdash;
+  <a href="index.html">Back to Main Dashboard Hub</a>
+</div>
+
+<script>
+function openDashboard(file, event) {
+  event.preventDefault();
+  const sessionId = document.getElementById('sessionInput').value.trim();
+  let url = file;
+  if (sessionId) {
+    url += '?bms-session-id=' + encodeURIComponent(sessionId);
+  }
+  window.location.href = url;
+}
+
+// Auto-load session from cookie or URL
+(function() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const sid = urlParams.get('bms-session-id');
+  if (sid) {
+    document.getElementById('sessionInput').value = sid;
+  } else {
+    const match = document.cookie.match(/(?:^|; )bms-session-id=([^;]*)/);
+    if (match) {
+      document.getElementById('sessionInput').value = decodeURIComponent(match[1]);
+    }
+  }
+})();
+</script>
+</body>
+</html>
