@@ -7,16 +7,19 @@
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0d1117;
-    --surface: #161b22;
-    --surface2: #1c2128;
-    --border: #30363d;
+    --bg: #060a10;
+    --surface: #0d1117;
+    --surface2: #161b22;
+    --surface3: #1c2333;
+    --border: #21262d;
+    --border-light: #30363d;
     --text: #e6edf3;
     --text-muted: #7d8590;
+    --text-dim: #484f58;
     --primary: #1f6feb;
     --primary-glow: rgba(31,111,235,0.15);
     --success: #3fb950;
-    --success-bg: rgba(63,185,80,0.1);
+    --success-bg: rgba(63,185,80,0.08);
     --accent: #58a6ff;
     --teal: #39d353;
     --purple: #bc8cff;
@@ -24,286 +27,397 @@
     --pink: #f778ba;
     --error: #f85149;
     --cyan: #79c0ff;
+    --gold: #e3b341;
+    --hero-bg: linear-gradient(135deg, #0d1117 0%, #161b33 50%, #0d1117 100%);
+    --hero-orb1: rgba(31,111,235,0.06);
+    --hero-orb2: rgba(121,192,255,0.04);
+    --hero-orb3: rgba(188,140,255,0.03);
+    --back-link-bg: rgba(13,17,23,0.6);
+    --card-shadow: 0 8px 32px rgba(0,0,0,0.25), 0 0 0 1px rgba(31,111,235,0.1);
+    --search-icon: '\2315';
+  }
+
+  /* ===== Light Theme ===== */
+  [data-theme="light"] {
+    --bg: #f6f8fa;
+    --surface: #ffffff;
+    --surface2: #f0f2f5;
+    --surface3: #e8ecf0;
+    --border: #d0d7de;
+    --border-light: #d8dee4;
+    --text: #1f2328;
+    --text-muted: #57606a;
+    --text-dim: #8b949e;
+    --primary: #0969da;
+    --primary-glow: rgba(9,105,218,0.1);
+    --success: #1a7f37;
+    --success-bg: rgba(26,127,55,0.08);
+    --accent: #0550ae;
+    --teal: #1a7f37;
+    --purple: #8250df;
+    --orange: #bc4c00;
+    --pink: #bf3989;
+    --error: #cf222e;
+    --cyan: #0550ae;
+    --gold: #9a6700;
+    --hero-bg: linear-gradient(135deg, #ffffff 0%, #e8f0fe 50%, #f6f8fa 100%);
+    --hero-orb1: rgba(9,105,218,0.05);
+    --hero-orb2: rgba(5,80,174,0.03);
+    --hero-orb3: rgba(130,80,223,0.03);
+    --back-link-bg: rgba(255,255,255,0.7);
+    --card-shadow: 0 8px 24px rgba(0,0,0,0.06), 0 0 0 1px rgba(9,105,218,0.08);
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
-
   body {
     font-family: 'Sarabun', sans-serif;
     background: var(--bg);
     color: var(--text);
     min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    transition: background 0.3s, color 0.3s;
   }
 
-  .header {
-    width: 100%;
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 20px 24px;
-    text-align: center;
-  }
-  .header-top {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
+  /* ===== Hero Header ===== */
+  .hero {
     position: relative;
+    background: var(--hero-bg);
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+    transition: background 0.3s;
   }
-  .header-logo {
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 6px;
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%; width: 200%; height: 200%;
+    background: radial-gradient(circle at 30% 40%, var(--hero-orb1) 0%, transparent 50%),
+                radial-gradient(circle at 70% 60%, var(--hero-orb2) 0%, transparent 50%),
+                radial-gradient(circle at 50% 20%, var(--hero-orb3) 0%, transparent 40%);
+    animation: heroPulse 15s ease-in-out infinite alternate;
   }
-  .logo-shield {
-    width: 40px; height: 40px;
-    background: linear-gradient(135deg, #1f6feb, #79c0ff);
-    border-radius: 10px;
+  @keyframes heroPulse {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(-2%, 1%) scale(1.02); }
+  }
+  .hero-inner {
+    position: relative;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 28px 32px 24px;
+  }
+  .hero-nav {
     display: flex;
     align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    font-weight: 700;
-    color: #fff;
-    font-family: 'JetBrains Mono', monospace;
-  }
-  .header h1 {
-    font-size: 22px;
-    font-weight: 700;
-    letter-spacing: -0.5px;
-  }
-  .header h1 span { color: var(--cyan); }
-  .header-sub {
-    font-size: 13px;
-    color: var(--text-muted);
-    margin-top: 4px;
+    justify-content: space-between;
+    margin-bottom: 20px;
   }
   .back-link {
-    position: absolute;
-    left: 0;
-    font-size: 12px;
-    color: var(--accent);
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    padding: 4px 12px;
+    font-size: 12px; color: var(--text-muted);
+    text-decoration: none; display: flex; align-items: center; gap: 6px;
+    padding: 5px 14px; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--back-link-bg); backdrop-filter: blur(8px);
+    transition: all 0.2s;
+  }
+  .back-link:hover { border-color: var(--accent); color: var(--accent); }
+  .hero-badge {
+    font-size: 10px; font-weight: 700; font-family: 'JetBrains Mono', monospace;
+    color: var(--cyan); background: rgba(121,192,255,0.08);
+    border: 1px solid rgba(121,192,255,0.2); border-radius: 20px;
+    padding: 3px 12px; letter-spacing: 0.5px;
+  }
+  .hero-content {
+    display: flex; align-items: center; gap: 20px;
+  }
+  .hero-icon {
+    width: 56px; height: 56px;
+    background: linear-gradient(135deg, rgba(31,111,235,0.2), rgba(121,192,255,0.15));
+    border: 1px solid rgba(88,166,255,0.25);
+    border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; font-weight: 700; color: var(--cyan);
+    font-family: 'JetBrains Mono', monospace;
+    flex-shrink: 0;
+  }
+  .hero h1 {
+    font-size: 26px; font-weight: 700; letter-spacing: -0.5px; line-height: 1.2;
+  }
+  .hero h1 span { color: var(--cyan); }
+  .hero-sub {
+    font-size: 14px; color: var(--text-muted); margin-top: 4px; line-height: 1.5;
+  }
+  .hero-stats {
+    display: flex; gap: 24px; margin-top: 20px;
+    padding: 14px 20px;
+    background: rgba(13,17,23,0.5);
     border: 1px solid var(--border);
-    border-radius: 6px;
-    background: var(--surface2);
-    transition: all 0.15s;
+    border-radius: 12px;
+    backdrop-filter: blur(8px);
   }
-  .back-link:hover { border-color: var(--accent); text-decoration: none; }
+  .hero-stat {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .hero-stat .num {
+    font-size: 22px; font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent);
+  }
+  .hero-stat .label {
+    font-size: 11px; color: var(--text-muted);
+    line-height: 1.3;
+  }
+  .stat-divider {
+    width: 1px; background: var(--border);
+  }
 
+  /* ===== Container ===== */
   .container {
-    max-width: 900px;
-    width: 100%;
-    padding: 32px 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px 32px 40px;
   }
 
-  /* Session Quick Connect */
+  /* ===== Session Bar ===== */
   .session-bar {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 12px;
-    padding: 16px 20px;
-    margin-bottom: 28px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
+    padding: 14px 18px;
+    margin-bottom: 24px;
+    display: flex; align-items: center; gap: 12px;
     flex-wrap: wrap;
   }
+  .session-bar-icon {
+    width: 32px; height: 32px;
+    background: var(--primary-glow); border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    flex-shrink: 0;
+  }
   .session-bar-label {
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    white-space: nowrap;
+    font-size: 12px; font-weight: 700; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap;
   }
   .session-bar input {
-    flex: 1;
-    min-width: 200px;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 8px 12px;
-    color: var(--text);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    transition: border-color 0.15s;
+    flex: 1; min-width: 200px;
+    background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 8px 12px; color: var(--text);
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    transition: all 0.2s;
   }
   .session-bar input:focus {
-    outline: none;
-    border-color: var(--primary);
+    outline: none; border-color: var(--primary);
     box-shadow: 0 0 0 3px var(--primary-glow);
   }
-  .session-bar-hint {
-    font-size: 11px;
-    color: var(--text-muted);
+
+  /* ===== Toolbar ===== */
+  .toolbar {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 20px; flex-wrap: wrap;
+  }
+  .search-box {
+    flex: 1; min-width: 180px; position: relative;
+  }
+  .search-box input {
     width: 100%;
-    margin-top: -4px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    padding: 8px 12px 8px 34px; color: var(--text);
+    font-size: 13px; transition: all 0.2s;
+  }
+  .search-box input:focus {
+    outline: none; border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-glow);
+  }
+  .search-box::before {
+    content: '\2315'; position: absolute; left: 12px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-dim); font-size: 14px; pointer-events: none;
+  }
+  .search-box input::placeholder { color: var(--text-dim); }
+  .view-toggle {
+    display: flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+  }
+  .view-btn {
+    padding: 7px 14px; background: var(--surface); border: none;
+    color: var(--text-muted); font-size: 13px; cursor: pointer;
+    transition: all 0.15s; display: flex; align-items: center; gap: 5px;
+  }
+  .view-btn + .view-btn { border-left: 1px solid var(--border); }
+  .view-btn:hover { color: var(--text); background: var(--surface2); }
+  .view-btn.active { color: var(--accent); background: var(--primary-glow); }
+  .sort-btn {
+    padding: 7px 14px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text-muted); font-size: 12px;
+    cursor: pointer; transition: all 0.15s; white-space: nowrap;
+  }
+  .sort-btn:hover { color: var(--text); border-color: var(--accent); }
+  .result-count {
+    font-size: 12px; color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+    white-space: nowrap;
   }
 
-  .section-title {
-    font-size: 13px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--text-muted);
-    margin-bottom: 14px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+  /* ===== Category Pills ===== */
+  .cat-row {
+    display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap;
   }
-  .section-title::after {
-    content: '';
-    flex: 1;
-    border-top: 1px solid var(--border);
+  .cat-pill {
+    padding: 4px 14px; border-radius: 20px;
+    font-size: 11px; font-weight: 600;
+    cursor: pointer; transition: all 0.15s;
+    border: 1px solid var(--border);
+    background: var(--surface); color: var(--text-muted);
+    white-space: nowrap;
+  }
+  .cat-pill:hover { border-color: var(--accent); color: var(--text); }
+  .cat-pill.active {
+    background: var(--primary-glow); border-color: var(--primary); color: var(--accent);
+  }
+  .cat-pill.all.active {
+    background: var(--success-bg); border-color: var(--success); color: var(--success);
   }
 
+  /* ===== Grid View ===== */
   .card-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 16px;
-    margin-bottom: 32px;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 14px;
+    transition: all 0.3s ease;
   }
-
   .card {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 12px;
-    padding: 20px;
+    padding: 18px;
     transition: all 0.2s ease;
-    cursor: pointer;
-    text-decoration: none;
-    color: inherit;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    position: relative;
-    overflow: hidden;
+    cursor: pointer; text-decoration: none; color: inherit;
+    display: flex; flex-direction: column; gap: 10px;
+    position: relative; overflow: hidden;
   }
   .card::before {
     content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 3px;
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
     border-radius: 12px 12px 0 0;
-    transition: opacity 0.2s;
+    opacity: 0; transition: opacity 0.2s;
   }
   .card:hover {
     border-color: var(--primary);
-    transform: translateY(-3px);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    transform: translateY(-2px);
+    box-shadow: var(--card-shadow);
   }
+  .card:hover::before { opacity: 1; }
+  .card.blue::before { background: linear-gradient(90deg, #1f6feb, #58a6ff); }
+  .card.green::before { background: linear-gradient(90deg, #3fb950, #39d353); }
+  .card.purple::before { background: linear-gradient(90deg, #8b5cf6, #bc8cff); }
+  .card.pink::before { background: linear-gradient(90deg, #f778ba, #ffa657); }
 
-  .card.blue::before { background: linear-gradient(90deg, #1f6feb, #58a6ff); opacity: 1; }
-  .card.green::before { background: linear-gradient(90deg, #3fb950, #39d353); opacity: 1; }
-  .card.purple::before { background: linear-gradient(90deg, #8b5cf6, #bc8cff); opacity: 1; }
-  .card.pink::before { background: linear-gradient(90deg, #f778ba, #ffa657); opacity: 1; }
-  .card.cyan::before { background: linear-gradient(90deg, #58a6ff, #79c0ff); opacity: 1; }
-
-  .card-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
+  .card-header { display: flex; align-items: center; gap: 12px; }
   .card-icon {
-    width: 44px; height: 44px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    font-weight: 700;
-    flex-shrink: 0;
+    width: 40px; height: 40px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 700; flex-shrink: 0;
     font-family: 'JetBrains Mono', monospace;
   }
-  .card.blue .card-icon { background: var(--primary-glow); color: var(--accent); }
-  .card.green .card-icon { background: var(--success-bg); color: var(--success); }
-  .card.purple .card-icon { background: rgba(188,140,255,0.12); color: var(--purple); }
-  .card.pink .card-icon { background: rgba(247,120,186,0.12); color: var(--pink); }
-  .card.cyan .card-icon { background: rgba(121,192,255,0.12); color: var(--cyan); }
-
-  .card-title {
-    font-size: 16px;
-    font-weight: 700;
-    line-height: 1.3;
-  }
+  .card.blue .card-icon { background: rgba(31,111,235,0.12); color: var(--accent); }
+  .card.green .card-icon { background: rgba(63,185,80,0.1); color: var(--success); }
+  .card.purple .card-icon { background: rgba(188,140,255,0.1); color: var(--purple); }
+  .card.pink .card-icon { background: rgba(247,120,186,0.1); color: var(--pink); }
+  .card-title { font-size: 14px; font-weight: 700; line-height: 1.3; }
   .card-version {
-    font-size: 10px;
-    color: var(--text-muted);
+    font-size: 9px; color: var(--text-dim);
     font-family: 'JetBrains Mono', monospace;
-    padding: 1px 6px;
-    background: var(--surface2);
-    border-radius: 3px;
+    padding: 1px 6px; background: var(--surface2); border-radius: 3px;
   }
-
   .card-desc {
-    font-size: 13px;
-    color: var(--text-muted);
-    line-height: 1.6;
+    font-size: 12px; color: var(--text-muted); line-height: 1.5;
   }
-
-  .card-tags {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-  }
+  .card-tags { display: flex; gap: 4px; flex-wrap: wrap; }
   .card-tag {
-    font-size: 10px;
-    font-family: 'JetBrains Mono', monospace;
-    padding: 2px 8px;
-    border-radius: 4px;
-    background: var(--surface2);
-    color: var(--text-muted);
+    font-size: 10px; font-family: 'JetBrains Mono', monospace;
+    padding: 1px 7px; border-radius: 4px;
+    background: var(--surface2); color: var(--text-dim);
     border: 1px solid var(--border);
   }
-
   .card-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-top: auto;
-    padding-top: 8px;
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: auto; padding-top: 8px;
     border-top: 1px solid var(--border);
   }
   .card-method {
-    font-size: 10px;
-    font-weight: 700;
+    font-size: 10px; font-weight: 700;
     font-family: 'JetBrains Mono', monospace;
-    padding: 2px 8px;
-    border-radius: 4px;
+    padding: 2px 8px; border-radius: 4px;
+    background: var(--success-bg); color: var(--success);
   }
-  .card-method.get { background: var(--success-bg); color: var(--success); }
-  .card-method.post { background: rgba(210,153,34,0.12); color: var(--orange); }
-  .card-method.mixed { background: var(--primary-glow); color: var(--accent); }
-
   .card-open {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--accent);
-    display: flex;
+    font-size: 11px; font-weight: 600; color: var(--text-dim);
+    display: flex; align-items: center; gap: 4px;
+    transition: color 0.15s;
+  }
+  .card:hover .card-open { color: var(--accent); }
+
+  /* ===== List View ===== */
+  .card-grid.list-view {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  .card-grid.list-view .card {
+    flex-direction: row;
     align-items: center;
-    gap: 4px;
+    padding: 12px 18px;
+    gap: 16px;
+    border-radius: 8px;
+  }
+  .card-grid.list-view .card::before { height: 100%; width: 3px; right: auto; border-radius: 8px 0 0 8px; }
+  .card-grid.list-view .card:hover { transform: translateX(3px); }
+  .card-grid.list-view .card-header { flex-shrink: 0; }
+  .card-grid.list-view .card-icon { width: 36px; height: 36px; font-size: 13px; }
+  .card-grid.list-view .card-title { font-size: 13px; }
+  .card-grid.list-view .card-desc {
+    flex: 1; font-size: 12px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    min-width: 0;
+  }
+  .card-grid.list-view .card-tags { display: none; }
+  .card-grid.list-view .card-footer {
+    border-top: none; padding-top: 0; flex-shrink: 0; gap: 10px;
   }
 
-  /* Footer */
-  .footer {
-    text-align: center;
-    padding: 20px;
-    color: var(--text-muted);
-    font-size: 12px;
-    border-top: 1px solid var(--border);
-    width: 100%;
-    margin-top: auto;
+  /* ===== No results ===== */
+  .no-results {
+    text-align: center; padding: 60px 20px;
+    color: var(--text-dim); font-size: 14px;
+    display: none;
   }
-  .footer a { color: var(--accent); text-decoration: none; }
-  .footer a:hover { text-decoration: underline; }
+  .no-results .icon {
+    font-size: 36px; margin-bottom: 12px; opacity: 0.3;
+  }
+
+  /* ===== Footer ===== */
+  .footer {
+    text-align: center; padding: 24px 20px;
+    color: var(--text-dim); font-size: 12px;
+    border-top: 1px solid var(--border);
+  }
+  .footer a { color: var(--text-muted); text-decoration: none; }
+  .footer a:hover { color: var(--accent); }
+
+  /* ===== Theme Toggle ===== */
+  .theme-toggle {
+    display: flex; align-items: center; gap: 8px;
+    padding: 5px 14px; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--back-link-bg); backdrop-filter: blur(8px);
+    cursor: pointer; transition: all 0.2s; font-size: 12px; color: var(--text-muted);
+    user-select: none;
+  }
+  .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+  .theme-toggle .icon { font-size: 16px; line-height: 1; }
+  .theme-toggle .label { font-family: 'Sarabun', sans-serif; }
+
+  /* Smooth transitions for themed elements */
+  .card, .session-bar, .cat-pill, .search-box input, .view-btn, .sort-btn,
+  .hero-stats, .hero-icon, .hero-badge, .footer, .no-results {
+    transition: background 0.3s, border-color 0.3s, color 0.3s, box-shadow 0.3s;
+  }
 
   ::-webkit-scrollbar { width: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
@@ -312,259 +426,417 @@
 </head>
 <body>
 
-<div class="header">
-  <div class="header-top">
-    <a class="back-link" href="index.html">&larr; Main Hub</a>
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-nav">
+      <a class="back-link" href="index.html">&larr; Main Hub</a>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="hero-badge">HOSxP Workshop Training System</span>
+        <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">
+          <span class="icon" id="themeIcon">&#9790;</span>
+          <span class="label" id="themeLabel">Dark</span>
+        </button>
+      </div>
+    </div>
+    <div class="hero-content">
+      <div class="hero-icon">W</div>
+      <div>
+        <h1>BMS <span>Workshop</span> Hub</h1>
+        <div class="hero-sub">ระบบรายงานสรุปการอบรม Work Shop ระบบงานโรงพยาบาล &mdash; เชื่อมต่อผ่าน BMS Session API</div>
+      </div>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="num" id="totalCount">28</div>
+        <div class="label">Workshop<br>Reports</div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="hero-stat">
+        <div class="num" style="color:var(--teal)">5</div>
+        <div class="label">Category<br>Groups</div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="hero-stat">
+        <div class="num" style="color:var(--purple)">SQL</div>
+        <div class="label">Editable<br>Query</div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="hero-stat">
+        <div class="num" style="color:var(--orange)">CSV</div>
+        <div class="label">Export<br>Support</div>
+      </div>
+    </div>
   </div>
-  <div class="header-logo">
-    <div class="logo-shield">WS</div>
-    <h1>BMS <span>Workshop</span> Hub</h1>
-  </div>
-  <div class="header-sub">Workshop Dashboards - รายงานสรุปการอบรมระบบงานห้องปฏิบัติการ</div>
 </div>
 
 <div class="container">
-
-  <!-- Session Quick Connect -->
+  <!-- Session Bar -->
   <div class="session-bar">
-    <span class="session-bar-label">BMS Session ID</span>
-    <input type="text" id="sessionInput" placeholder="CB411DB0-B121-43C6-B795-80ADECE6A13C"
+    <div class="session-bar-icon">S</div>
+    <span class="session-bar-label">Session</span>
+    <input type="text" id="sessionInput" placeholder="Paste BMS Session ID to auto-connect..."
       spellcheck="false" autocomplete="off">
-    <div class="session-bar-hint">
-      Paste your Session ID here, then click any dashboard below to open with auto-connect
-    </div>
   </div>
 
-  <!-- Workshop Dashboards -->
-  <div class="section-title">Workshop Reports (28 รายงาน)</div>
-  <div class="card-grid">
+  <!-- Category Filter -->
+  <div class="cat-row">
+    <span class="cat-pill all active" onclick="filterCat('all',this)">All (28)</span>
+    <span class="cat-pill" onclick="filterCat('clinical',this)">Clinical / OPD</span>
+    <span class="cat-pill" onclick="filterCat('inpatient',this)">Inpatient / Ward</span>
+    <span class="cat-pill" onclick="filterCat('diagnostic',this)">Diagnostic / LAB</span>
+    <span class="cat-pill" onclick="filterCat('support',this)">Support Services</span>
+    <span class="cat-pill" onclick="filterCat('admin',this)">Admin / Records</span>
+  </div>
 
-    <a class="card blue" href="#" onclick="openDashboard('bms-lab-workshop.html', event)">
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="Search workshops..." oninput="filterCards()">
+    </div>
+    <div class="view-toggle">
+      <button class="view-btn active" id="gridBtn" onclick="setView('grid')">&#9638; Grid</button>
+      <button class="view-btn" id="listBtn" onclick="setView('list')">&#9776; List</button>
+    </div>
+    <button class="sort-btn" onclick="toggleSort()">&#8645; A-Z</button>
+    <span class="result-count" id="resultCount">28 items</span>
+  </div>
+
+  <!-- Cards Grid -->
+  <div class="card-grid" id="cardGrid">
+
+    <!-- LAB -->
+    <a class="card blue" href="#" onclick="openDashboard('bms-lab-workshop.html',event)" data-name="LAB Workshop" data-cat="diagnostic" data-th="ห้อง LAB">
       <div class="card-header"><div class="card-icon">WS</div><div><div class="card-title">LAB Workshop</div><span class="card-version">v1.0</span></div></div>
-      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานห้อง LAB<br>จำนวน HN, สั่ง Lab, รับ Specimen, รายงานผล</div>
-      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">LAB</span><span class="card-tag">Chart</span></div>
-      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+      <div class="card-desc">ระบบงานห้อง LAB &mdash; HN, สั่ง Lab, รับ Specimen, รายงานผล</div>
+      <div class="card-tags"><span class="card-tag">LAB</span><span class="card-tag">Chart</span></div>
+      <div class="card-footer"><span class="card-method">GET</span><span class="card-open">Open &rarr;</span></div>
     </a>
 
-    <a class="card blue" href="#" onclick="openDashboard('bms-ws-admit.html', event)">
+    <!-- Admit -->
+    <a class="card blue" href="#" onclick="openDashboard('bms-ws-admit.html',event)" data-name="Admit Workshop" data-cat="inpatient" data-th="Admit">
       <div class="card-header"><div class="card-icon">AD</div><div><div class="card-title">Admit Workshop</div><span class="card-version">v1.0</span></div></div>
-      <div class="card-desc">สรุปการทำ Work Shop - ระบบงาน Admit</div>
-      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Admit</span></div>
-      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+      <div class="card-desc">ระบบงาน Admit &mdash; รับ Admit, Transfer</div>
+      <div class="card-tags"><span class="card-tag">Admit</span></div>
+      <div class="card-footer"><span class="card-method">GET</span><span class="card-open">Open &rarr;</span></div>
     </a>
 
-    <a class="card green" href="#" onclick="openDashboard('bms-ws-blood-bank.html', event)">
+    <!-- Blood Bank -->
+    <a class="card green" href="#" onclick="openDashboard('bms-ws-blood-bank.html',event)" data-name="Blood Bank Workshop" data-cat="diagnostic" data-th="Blood Bank">
       <div class="card-header"><div class="card-icon">BB</div><div><div class="card-title">Blood Bank Workshop</div><span class="card-version">v1.0</span></div></div>
-      <div class="card-desc">สรุปการทำ Work Shop - ระบบงาน Blood Bank</div>
-      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Blood Bank</span></div>
-      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+      <div class="card-desc">ระบบงาน Blood Bank &mdash; Request, รับเลือด, Crossmatch, จ่ายเลือด</div>
+      <div class="card-tags"><span class="card-tag">Blood Bank</span></div>
+      <div class="card-footer"><span class="card-method">GET</span><span class="card-open">Open &rarr;</span></div>
     </a>
 
-    <a class="card purple" href="#" onclick="openDashboard('bms-ws-ipd.html', event)">
+    <!-- IPD -->
+    <a class="card purple" href="#" onclick="openDashboard('bms-ws-ipd.html',event)" data-name="IPD Workshop" data-cat="inpatient" data-th="IPD">
       <div class="card-header"><div class="card-icon">IP</div><div><div class="card-title">IPD Workshop</div><span class="card-version">v1.0</span></div></div>
-      <div class="card-desc">สรุปการทำ Work Shop - ระบบงาน IPD</div>
-      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">IPD</span></div>
-      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+      <div class="card-desc">ระบบงาน IPD &mdash; รับใหม่, ย้ายวอร์ด, หัตถการ, Discharge</div>
+      <div class="card-tags"><span class="card-tag">IPD</span></div>
+      <div class="card-footer"><span class="card-method">GET</span><span class="card-open">Open &rarr;</span></div>
     </a>
 
-    <a class="card pink" href="#" onclick="openDashboard('bms-ws-xray.html', event)">
+    <!-- X-Ray -->
+    <a class="card pink" href="#" onclick="openDashboard('bms-ws-xray.html',event)" data-name="X-Ray Workshop" data-cat="diagnostic" data-th="X-Ray">
       <div class="card-header"><div class="card-icon">XR</div><div><div class="card-title">X-Ray Workshop</div><span class="card-version">v1.0</span></div></div>
-      <div class="card-desc">สรุปการทำ Work Shop - ระบบงาน X-Ray</div>
-      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">X-Ray</span></div>
-      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+      <div class="card-desc">ระบบงาน X-Ray &mdash; Request, Order, บันทึกผล</div>
+      <div class="card-tags"><span class="card-tag">X-Ray</span></div>
+      <div class="card-footer"><span class="card-method">GET</span><span class="card-open">Open &rarr;</span></div>
     </a>
 
-    <a class="card blue" href="#" onclick="openDashboard('bms-ws-pathology.html', event)">
+    <!-- Pathology -->
+    <a class="card blue" href="#" onclick="openDashboard('bms-ws-pathology.html',event)" data-name="Pathology Workshop" data-cat="diagnostic" data-th="ชิ้นเนื้อ">
       <div class="card-header"><div class="card-icon">PA</div><div><div class="card-title">Pathology Workshop</div><span class="card-version">v1.0</span></div></div>
-      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานชิ้นเนื้อ</div>
-      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Pathology</span></div>
-      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+      <div class="card-desc">ระบบงานชิ้นเนื้อ &mdash; Request, รับ Specimen, รายงานผล</div>
+      <div class="card-tags"><span class="card-tag">Pathology</span></div>
+      <div class="card-footer"><span class="card-method">GET</span><span class="card-open">Open &rarr;</span></div>
     </a>
 
-    <a class="card green" href="#" onclick="openDashboard('bms-ws-finance.html', event)">
+    <!-- Finance -->
+    <a class="card green" href="#" onclick="openDashboard('bms-ws-finance.html',event)" data-name="Finance Workshop" data-cat="admin" data-th="การเงิน">
       <div class="card-header"><div class="card-icon">FN</div><div><div class="card-title">Finance Workshop</div><span class="card-version">v1.0</span></div></div>
-      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานการเงิน</div>
-      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Finance</span></div>
-      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+      <div class="card-desc">ระบบงานการเงิน &mdash; ใบเสร็จ, ใบหนี้, ใบลดหนี้</div>
+      <div class="card-tags"><span class="card-tag">Finance</span></div>
+      <div class="card-footer"><span class="card-method">GET</span><span class="card-open">Open &rarr;</span></div>
     </a>
 
-    <a class="card purple" href="#" onclick="openDashboard('bms-ws-er.html', event)">
+    <!-- ER -->
+    <a class="card purple" href="#" onclick="openDashboard('bms-ws-er.html',event)" data-name="ER Workshop" data-cat="clinical" data-th="ฉุกเฉิน ER">
       <div class="card-header"><div class="card-icon">ER</div><div><div class="card-title">ER Workshop</div><span class="card-version">v1.0</span></div></div>
-      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานฉุกเฉิน ER</div>
-      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">ER</span></div>
-      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+      <div class="card-desc">ระบบงานฉุกเฉิน ER &mdash; รับ ER, CC, Vital Sign, หัตถการ, สั่งยา</div>
+      <div class="card-tags"><span class="card-tag">ER</span></div>
+      <div class="card-footer"><span class="card-method">GET</span><span class="card-open">Open &rarr;</span></div>
     </a>
 
-    <a class="card pink" href="#" onclick="openDashboard('bms-ws-screening.html', event)">
+    <!-- Screening -->
+    <a class="card pink" href="#" onclick="openDashboard('bms-ws-screening.html',event)" data-name="Screening Workshop" data-cat="clinical" data-th="ซักประวัติ">
       <div class="card-header"><div class="card-icon">SC</div><div><div class="card-title">Screening Workshop</div><span class="card-version">v1.0</span></div></div>
-      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานซักประวัติ</div>
-      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Screening</span></div>
-      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+      <div class="card-desc">ระบบงานซักประวัติ &mdash; Vital Sign, CC, HPI, หัตถการ, สั่งยา</div>
+      <div class="card-tags"><span class="card-tag">Screening</span></div>
+      <div class="card-footer"><span class="card-method">GET</span><span class="card-open">Open &rarr;</span></div>
     </a>
 
-    <a class="card blue" href="#" onclick="openDashboard('bms-ws-screening-bc.html', event)">
+    <!-- Registration -->
+    <a class="card blue" href="#" onclick="openDashboard('bms-ws-screening-bc.html',event)" data-name="Registration Workshop" data-cat="admin" data-th="ซักประวัติ-bc เวชระเบียน">
       <div class="card-header"><div class="card-icon">RG</div><div><div class="card-title">Registration Workshop</div><span class="card-version">v1.0</span></div></div>
-      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานซักประวัติ-bc</div>
-      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Registration</span></div>
-      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+      <div class="card-desc">ระบบงานซักประวัติ-bc &mdash; HN ใหม่, สิทธิ์, New Visit, เช็คสิทธิ์</div>
+      <div class="card-tags"><span class="card-tag">Registration</span></div>
+      <div class="card-footer"><span class="card-method">GET</span><span class="card-open">Open &rarr;</span></div>
     </a>
 
-    <a class="card green" href="#" onclick="openDashboard('bms-ws-checkup.html', event)">
+    <!-- Checkup -->
+    <a class="card green" href="#" onclick="openDashboard('bms-ws-checkup.html',event)" data-name="Checkup Workshop" data-cat="clinical" data-th="ตรวจสุขภาพ">
       <div class="card-header"><div class="card-icon">CU</div><div><div class="card-title">Checkup Workshop</div><span class="card-version">v1.0</span></div></div>
-      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานตรวจสุขภาพ</div>
-      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Checkup</span></div>
-      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+      <div class="card-desc">ระบบงานตรวจสุขภาพ &mdash; ผู้ป่วย, Vital Sign, LAB, X-Ray</div>
+      <div class="card-tags"><span class="card-tag">Checkup</span></div>
+      <div class="card-footer"><span class="card-method">GET</span><span class="card-open">Open &rarr;</span></div>
     </a>
 
-    <a class="card purple" href="#" onclick="openDashboard('bms-ws-hemodialysis.html', event)">
+    <!-- Hemodialysis -->
+    <a class="card purple" href="#" onclick="openDashboard('bms-ws-hemodialysis.html',event)" data-name="Hemodialysis Workshop" data-cat="clinical" data-th="ไตเทียม">
       <div class="card-header"><div class="card-icon">HD</div><div><div class="card-title">Hemodialysis Workshop</div><span class="card-version">v1.0</span></div></div>
-      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานไตเทียม</div>
-      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Hemodialysis</span></div>
-      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+      <div class="card-desc">ระบบงานไตเทียม &mdash; Vital Sign, CC, HPI, หัตถการ, สั่งยา</div>
+      <div class="card-tags"><span class="card-tag">Hemodialysis</span></div>
+      <div class="card-footer"><span class="card-method">GET</span><span class="card-open">Open &rarr;</span></div>
     </a>
 
-    <a class="card pink" href="#" onclick="openDashboard('bms-ws-dental.html', event)">
+    <!-- Dental -->
+    <a class="card pink" href="#" onclick="openDashboard('bms-ws-dental.html',event)" data-name="Dental Workshop" data-cat="clinical" data-th="ทันตกรรม">
       <div class="card-header"><div class="card-icon">DT</div><div><div class="card-title">Dental Workshop</div><span class="card-version">v1.0</span></div></div>
-      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานทันตกรรม</div>
-      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Dental</span></div>
-      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+      <div class="card-desc">ระบบงานทันตกรรม &mdash; CC, Dental Care, หัตถการทันต์, สั่งยา</div>
+      <div class="card-tags"><span class="card-tag">Dental</span></div>
+      <div class="card-footer"><span class="card-method">GET</span><span class="card-open">Open &rarr;</span></div>
     </a>
 
-    <a class="card blue" href="#" onclick="openDashboard('bms-ws-insurance.html', event)">
+    <!-- Insurance -->
+    <a class="card blue" href="#" onclick="openDashboard('bms-ws-insurance.html',event)" data-name="Insurance Workshop" data-cat="admin" data-th="ประกัน">
       <div class="card-header"><div class="card-icon">IN</div><div><div class="card-title">Insurance Workshop</div><span class="card-version">v1.0</span></div></div>
-      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานประกัน</div>
-      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Insurance</span></div>
-      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+      <div class="card-desc">ระบบงานประกัน &mdash; เพิ่มสิทธิ์, เช็คสิทธิ์, ใบเสร็จ</div>
+      <div class="card-tags"><span class="card-tag">Insurance</span></div>
+      <div class="card-footer"><span class="card-method">GET</span><span class="card-open">Open &rarr;</span></div>
     </a>
 
-    <a class="card green" href="#" onclick="openDashboard('bms-ws-anesthesia.html', event)">
+    <!-- Anesthesia -->
+    <a class="card green" href="#" onclick="openDashboard('bms-ws-anesthesia.html',event)" data-name="Anesthesia Workshop" data-cat="support" data-th="วิสัญญี">
       <div class="card-header"><div class="card-icon">AN</div><div><div class="card-title">Anesthesia Workshop</div><span class="card-version">v1.0</span></div></div>
-      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานวิสัญญี</div>
-      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Anesthesia</span></div>
-      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+      <div class="card-desc">ระบบงานวิสัญญี &mdash; HN, Case, Visit, Screen, Anes, รายการยา</div>
+      <div class="card-tags"><span class="card-tag">Anesthesia</span></div>
+      <div class="card-footer"><span class="card-method">GET</span><span class="card-open">Open &rarr;</span></div>
     </a>
 
-    <a class="card purple" href="#" onclick="openDashboard('bms-ws-social-medicine.html', event)">
+    <!-- Social Medicine -->
+    <a class="card purple" href="#" onclick="openDashboard('bms-ws-social-medicine.html',event)" data-name="Social Medicine Workshop" data-cat="clinical" data-th="เวชกรรมสังคม">
       <div class="card-header"><div class="card-icon">SM</div><div><div class="card-title">Social Medicine Workshop</div><span class="card-version">v1.0</span></div></div>
-      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานเวชกรรมสังคม</div>
-      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Social Medicine</span></div>
-      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+      <div class="card-desc">ระบบงานเวชกรรมสังคม &mdash; HN ใหม่, สิทธิ์, Visit, Diag, สั่งยา</div>
+      <div class="card-tags"><span class="card-tag">Social Med</span></div>
+      <div class="card-footer"><span class="card-method">GET</span><span class="card-open">Open &rarr;</span></div>
     </a>
 
-    <a class="card pink" href="#" onclick="openDashboard('bms-ws-rehabilitation.html', event)">
+    <!-- Rehabilitation -->
+    <a class="card pink" href="#" onclick="openDashboard('bms-ws-rehabilitation.html',event)" data-name="Rehabilitation Workshop" data-cat="support" data-th="เวชศาสตร์ฟื้นฟู">
       <div class="card-header"><div class="card-icon">RH</div><div><div class="card-title">Rehabilitation Workshop</div><span class="card-version">v1.0</span></div></div>
-      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานเวชศาสตร์ฟื้นฟู</div>
-      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Rehabilitation</span></div>
-      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+      <div class="card-desc">ระบบงานเวชศาสตร์ฟื้นฟู &mdash; Plan, CC, Vital Sign, LAB, X-Ray</div>
+      <div class="card-tags"><span class="card-tag">Rehab</span></div>
+      <div class="card-footer"><span class="card-method">GET</span><span class="card-open">Open &rarr;</span></div>
     </a>
 
-    <a class="card blue" href="#" onclick="openDashboard('bms-ws-medical-stat.html', event)">
+    <!-- Medical Statistics -->
+    <a class="card blue" href="#" onclick="openDashboard('bms-ws-medical-stat.html',event)" data-name="Medical Statistics Workshop" data-cat="admin" data-th="เวชสถิติ">
       <div class="card-header"><div class="card-icon">MS</div><div><div class="card-title">Medical Statistics Workshop</div><span class="card-version">v1.0</span></div></div>
-      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานเวชสถิติ</div>
-      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Medical Statistics</span></div>
-      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+      <div class="card-desc">ระบบงานเวชสถิติ &mdash; OPD/IPD Rent, File, Diag, Oper, Chart</div>
+      <div class="card-tags"><span class="card-tag">Med Stat</span></div>
+      <div class="card-footer"><span class="card-method">GET</span><span class="card-open">Open &rarr;</span></div>
     </a>
 
-    <a class="card green" href="#" onclick="openDashboard('bms-ws-medical-record.html', event)">
+    <!-- Medical Records -->
+    <a class="card green" href="#" onclick="openDashboard('bms-ws-medical-record.html',event)" data-name="Medical Records Workshop" data-cat="admin" data-th="เวชระเบียน">
       <div class="card-header"><div class="card-icon">MR</div><div><div class="card-title">Medical Records Workshop</div><span class="card-version">v1.0</span></div></div>
-      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานเวชระเบียน</div>
-      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Medical Records</span></div>
-      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+      <div class="card-desc">ระบบงานเวชระเบียน &mdash; HN ใหม่, สิทธิ์, New Visit, เช็คสิทธิ์</div>
+      <div class="card-tags"><span class="card-tag">Med Record</span></div>
+      <div class="card-footer"><span class="card-method">GET</span><span class="card-open">Open &rarr;</span></div>
     </a>
 
-    <a class="card purple" href="#" onclick="openDashboard('bms-ws-doctor.html', event)">
+    <!-- Doctor -->
+    <a class="card purple" href="#" onclick="openDashboard('bms-ws-doctor.html',event)" data-name="Doctor Workshop" data-cat="clinical" data-th="แพทย์">
       <div class="card-header"><div class="card-icon">DR</div><div><div class="card-title">Doctor Workshop</div><span class="card-version">v1.0</span></div></div>
-      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานแพทย์</div>
-      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Doctor</span></div>
-      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+      <div class="card-desc">ระบบงานแพทย์ &mdash; ตรวจ OPD, Diag, HPI, LAB, X-Ray, สั่งยา</div>
+      <div class="card-tags"><span class="card-tag">Doctor</span></div>
+      <div class="card-footer"><span class="card-method">GET</span><span class="card-open">Open &rarr;</span></div>
     </a>
 
-    <a class="card pink" href="#" onclick="openDashboard('bms-ws-thai-medicine.html', event)">
+    <!-- Thai Medicine -->
+    <a class="card pink" href="#" onclick="openDashboard('bms-ws-thai-medicine.html',event)" data-name="Thai Medicine Workshop" data-cat="clinical" data-th="แพทย์แผนไทย">
       <div class="card-header"><div class="card-icon">TM</div><div><div class="card-title">Thai Medicine Workshop</div><span class="card-version">v1.0</span></div></div>
-      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานแพทย์แผนไทย</div>
-      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Thai Medicine</span></div>
-      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+      <div class="card-desc">ระบบงานแพทย์แผนไทย &mdash; Vital Sign, CC, Diag, Health Med</div>
+      <div class="card-tags"><span class="card-tag">Thai Med</span></div>
+      <div class="card-footer"><span class="card-method">GET</span><span class="card-open">Open &rarr;</span></div>
     </a>
 
-    <a class="card blue" href="#" onclick="openDashboard('bms-ws-nutrition.html', event)">
+    <!-- Nutrition -->
+    <a class="card blue" href="#" onclick="openDashboard('bms-ws-nutrition.html',event)" data-name="Nutrition Workshop" data-cat="support" data-th="โภชนาการ">
       <div class="card-header"><div class="card-icon">NU</div><div><div class="card-title">Nutrition Workshop</div><span class="card-version">v1.0</span></div></div>
-      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานโภชนาการ</div>
-      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Nutrition</span></div>
-      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+      <div class="card-desc">ระบบงานโภชนาการ &mdash; ยืนยันอาหาร, ส่งอาหาร, จำนวน AN</div>
+      <div class="card-tags"><span class="card-tag">Nutrition</span></div>
+      <div class="card-footer"><span class="card-method">GET</span><span class="card-open">Open &rarr;</span></div>
     </a>
 
-    <a class="card green" href="#" onclick="openDashboard('bms-ws-health-promotion.html', event)">
+    <!-- Health Promotion -->
+    <a class="card green" href="#" onclick="openDashboard('bms-ws-health-promotion.html',event)" data-name="Health Promotion Workshop" data-cat="clinical" data-th="ส่งเสริม">
       <div class="card-header"><div class="card-icon">HP</div><div><div class="card-title">Health Promotion Workshop</div><span class="card-version">v1.0</span></div></div>
-      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานส่งเสริม</div>
-      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Health Promotion</span></div>
-      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+      <div class="card-desc">ระบบงานส่งเสริม &mdash; Vital Sign, CC, HPI, LAB, X-Ray, สั่งยา</div>
+      <div class="card-tags"><span class="card-tag">Promotion</span></div>
+      <div class="card-footer"><span class="card-method">GET</span><span class="card-open">Open &rarr;</span></div>
     </a>
 
-    <a class="card purple" href="#" onclick="openDashboard('bms-ws-labor-room.html', event)">
+    <!-- Labor Room -->
+    <a class="card purple" href="#" onclick="openDashboard('bms-ws-labor-room.html',event)" data-name="Labor Room Workshop" data-cat="inpatient" data-th="ห้องคลอด">
       <div class="card-header"><div class="card-icon">LR</div><div><div class="card-title">Labor Room Workshop</div><span class="card-version">v1.0</span></div></div>
-      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานห้องคลอด</div>
-      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Labor Room</span></div>
-      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+      <div class="card-desc">ระบบงานห้องคลอด &mdash; รับใหม่, หัตถการ, LAB, Discharge, คลอด</div>
+      <div class="card-tags"><span class="card-tag">Labor</span></div>
+      <div class="card-footer"><span class="card-method">GET</span><span class="card-open">Open &rarr;</span></div>
     </a>
 
-    <a class="card pink" href="#" onclick="openDashboard('bms-ws-pharmacy-opd.html', event)">
+    <!-- Pharmacy OPD -->
+    <a class="card pink" href="#" onclick="openDashboard('bms-ws-pharmacy-opd.html',event)" data-name="Pharmacy OPD Workshop" data-cat="support" data-th="ห้องจ่ายยา">
       <div class="card-header"><div class="card-icon">PH</div><div><div class="card-title">Pharmacy OPD Workshop</div><span class="card-version">v1.0</span></div></div>
-      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานห้องจ่ายยา</div>
-      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Pharmacy OPD</span></div>
-      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+      <div class="card-desc">ระบบงานห้องจ่ายยา &mdash; VN, จ่ายยา Rx, ยา, Non-Drug</div>
+      <div class="card-tags"><span class="card-tag">Pharmacy</span></div>
+      <div class="card-footer"><span class="card-method">GET</span><span class="card-open">Open &rarr;</span></div>
     </a>
 
-    <a class="card blue" href="#" onclick="openDashboard('bms-ws-pharmacy-ipd.html', event)">
+    <!-- Pharmacy IPD -->
+    <a class="card blue" href="#" onclick="openDashboard('bms-ws-pharmacy-ipd.html',event)" data-name="Pharmacy IPD Workshop" data-cat="support" data-th="ห้องจ่ายยา IPD">
       <div class="card-header"><div class="card-icon">PI</div><div><div class="card-title">Pharmacy IPD Workshop</div><span class="card-version">v1.0</span></div></div>
-      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานห้องจ่ายยา IPD</div>
-      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Pharmacy IPD</span></div>
-      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+      <div class="card-desc">ระบบงานห้องจ่ายยา IPD &mdash; Med Plan, IPT Order, Confirm</div>
+      <div class="card-tags"><span class="card-tag">Pharmacy IPD</span></div>
+      <div class="card-footer"><span class="card-method">GET</span><span class="card-open">Open &rarr;</span></div>
     </a>
 
-    <a class="card green" href="#" onclick="openDashboard('bms-ws-exam-room.html', event)">
+    <!-- Exam Room -->
+    <a class="card green" href="#" onclick="openDashboard('bms-ws-exam-room.html',event)" data-name="Exam Room Workshop" data-cat="clinical" data-th="ห้องตรวจ">
       <div class="card-header"><div class="card-icon">EX</div><div><div class="card-title">Exam Room Workshop</div><span class="card-version">v1.0</span></div></div>
-      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานห้องตรวจ</div>
-      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Exam Room</span></div>
-      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+      <div class="card-desc">ระบบงานห้องตรวจ &mdash; ER, Vital Sign, CC, Diag, PE, LAB, สั่งยา</div>
+      <div class="card-tags"><span class="card-tag">Exam Room</span></div>
+      <div class="card-footer"><span class="card-method">GET</span><span class="card-open">Open &rarr;</span></div>
     </a>
 
-    <a class="card purple" href="#" onclick="openDashboard('bms-ws-operating-room.html', event)">
+    <!-- Operating Room -->
+    <a class="card purple" href="#" onclick="openDashboard('bms-ws-operating-room.html',event)" data-name="Operating Room Workshop" data-cat="support" data-th="ห้องผ่าตัด">
       <div class="card-header"><div class="card-icon">OR</div><div><div class="card-title">Operating Room Workshop</div><span class="card-version">v1.0</span></div></div>
-      <div class="card-desc">สรุปการทำ Work Shop - ระบบงานห้องผ่าตัด</div>
-      <div class="card-tags"><span class="card-tag">Workshop</span><span class="card-tag">Operating Room</span></div>
-      <div class="card-footer"><span class="card-method get">GET</span><span class="card-open">Open &rarr;</span></div>
+      <div class="card-desc">ระบบงานห้องผ่าตัด &mdash; รายการ, ทีม, ชิ้นเนื้อ, Visit List, สั่งยา</div>
+      <div class="card-tags"><span class="card-tag">OR</span></div>
+      <div class="card-footer"><span class="card-method">GET</span><span class="card-open">Open &rarr;</span></div>
     </a>
 
+  </div>
+
+  <div class="no-results" id="noResults">
+    <div class="icon">&#8709;</div>
+    <div>No workshops found matching your search</div>
   </div>
 </div>
 
 <div class="footer">
-  BMS Workshop Hub &copy; 2024 &mdash;
-  <a href="index.html">Back to Main Dashboard Hub</a>
+  BMS Workshop Hub &copy; 2024 &mdash; <a href="index.html">Main Dashboard Hub</a>
 </div>
 
 <script>
+let currentCat = 'all';
+let sortAsc = true;
+
 function openDashboard(file, event) {
   event.preventDefault();
-  const sessionId = document.getElementById('sessionInput').value.trim();
-  let url = file;
-  if (sessionId) {
-    url += '?bms-session-id=' + encodeURIComponent(sessionId);
-  }
-  window.location.href = url;
+  const sid = document.getElementById('sessionInput').value.trim();
+  window.location.href = sid ? file + '?bms-session-id=' + encodeURIComponent(sid) : file;
 }
 
-// Auto-load session from cookie or URL
+function filterCat(cat, el) {
+  currentCat = cat;
+  document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  filterCards();
+}
+
+function filterCards() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const cards = document.querySelectorAll('.card');
+  let visible = 0;
+  cards.forEach(c => {
+    const name = (c.dataset.name || '').toLowerCase();
+    const th = (c.dataset.th || '').toLowerCase();
+    const cat = c.dataset.cat || '';
+    const desc = (c.querySelector('.card-desc')?.textContent || '').toLowerCase();
+    const matchSearch = !q || name.includes(q) || th.includes(q) || desc.includes(q);
+    const matchCat = currentCat === 'all' || cat === currentCat;
+    const show = matchSearch && matchCat;
+    c.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+  document.getElementById('resultCount').textContent = visible + ' items';
+  document.getElementById('noResults').style.display = visible === 0 ? 'block' : 'none';
+}
+
+function setView(mode) {
+  const grid = document.getElementById('cardGrid');
+  document.getElementById('gridBtn').classList.toggle('active', mode === 'grid');
+  document.getElementById('listBtn').classList.toggle('active', mode === 'list');
+  grid.classList.toggle('list-view', mode === 'list');
+}
+
+function toggleSort() {
+  sortAsc = !sortAsc;
+  const grid = document.getElementById('cardGrid');
+  const cards = [...grid.querySelectorAll('.card')];
+  cards.sort((a, b) => {
+    const na = a.dataset.name || '';
+    const nb = b.dataset.name || '';
+    return sortAsc ? na.localeCompare(nb) : nb.localeCompare(na);
+  });
+  cards.forEach(c => grid.appendChild(c));
+  document.querySelector('.sort-btn').textContent = sortAsc ? '\u21C5 A-Z' : '\u21C5 Z-A';
+}
+
+// ===== Theme =====
+function toggleTheme() {
+  const html = document.documentElement;
+  const isLight = html.getAttribute('data-theme') === 'light';
+  setTheme(isLight ? 'dark' : 'light');
+}
+
+function setTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('ws-theme', theme);
+  const icon = document.getElementById('themeIcon');
+  const label = document.getElementById('themeLabel');
+  if (theme === 'light') {
+    icon.innerHTML = '&#9788;';
+    label.textContent = 'Light';
+  } else {
+    icon.innerHTML = '&#9790;';
+    label.textContent = 'Dark';
+  }
+}
+
+// Init theme from localStorage or system preference
 (function() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const sid = urlParams.get('bms-session-id');
+  const saved = localStorage.getItem('ws-theme');
+  if (saved) {
+    setTheme(saved);
+  } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+    setTheme('light');
+  }
+})();
+
+// Auto-load session
+(function() {
+  const p = new URLSearchParams(window.location.search);
+  const sid = p.get('bms-session-id');
   if (sid) {
     document.getElementById('sessionInput').value = sid;
   } else {
-    const match = document.cookie.match(/(?:^|; )bms-session-id=([^;]*)/);
-    if (match) {
-      document.getElementById('sessionInput').value = decodeURIComponent(match[1]);
-    }
+    const m = document.cookie.match(/(?:^|; )bms-session-id=([^;]*)/);
+    if (m) document.getElementById('sessionInput').value = decodeURIComponent(m[1]);
   }
 })();
 </script>

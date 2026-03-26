@@ -27,6 +27,19 @@
     --orange: #ffa657;
     --pink: #f778ba;
     --cyan: #79c0ff;
+    --color-scheme: dark;
+  }
+
+  [data-theme="light"] {
+    --bg: #f6f8fa; --surface: #ffffff; --surface2: #f0f2f5;
+    --border: #d0d7de; --text: #1f2328; --text-muted: #57606a;
+    --primary: #0969da; --primary-glow: rgba(9,105,218,0.1);
+    --success: #1a7f37; --success-bg: rgba(26,127,55,0.08);
+    --error: #cf222e; --error-bg: rgba(207,34,46,0.08);
+    --warn: #9a6700; --warn-bg: rgba(154,103,0,0.08);
+    --accent: #0550ae; --teal: #1a7f37; --purple: #8250df;
+    --orange: #bc4c00; --pink: #bf3989; --cyan: #0550ae;
+    --color-scheme: light;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -35,6 +48,7 @@
     font-family: 'Sarabun', sans-serif;
     background: var(--bg);
     color: var(--text);
+    transition: background 0.3s, color 0.3s;
     min-height: 100vh;
     font-size: 14px;
     line-height: 1.6;
@@ -137,7 +151,7 @@
     border-color: var(--primary);
     box-shadow: 0 0 0 2px var(--primary-glow);
   }
-  .field-input[type="date"] { color-scheme: dark; }
+  .field-input[type="date"] { color-scheme: var(--color-scheme); }
   .status-row {
     display: flex; align-items: center; gap: 6px;
     font-size: 11px; margin-top: 6px;
@@ -510,6 +524,22 @@
   .sidebar-section.collapsible { display: none; }
   .sidebar-section.collapsible.open { display: block; }
 
+  /* Theme Toggle */
+  .theme-btn {
+    padding: 4px 10px; border: 1px solid var(--border); border-radius: 6px;
+    background: var(--surface2); color: var(--text-muted); font-size: 14px;
+    cursor: pointer; transition: all 0.15s; line-height: 1;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .theme-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .theme-btn .lbl { font-size: 11px; font-family: 'Sarabun', sans-serif; }
+
+  .header, .sidebar, .sidebar-section, .content, .toolbar, .tabs,
+  .summary-row, .summary-card, .field-input, .btn, .settings-toggle,
+  .sql-editor, .result-table th, .result-table td, .toast, .empty-icon {
+    transition: background 0.3s, border-color 0.3s, color 0.3s;
+  }
+
   /* Responsive */
   @media (max-width: 900px) {
     .main { flex-direction: column; }
@@ -528,6 +558,7 @@
   <span class="header-subtitle">สรุปการทำ Work Shop ของการอบรมระบบงานห้อง LAB</span>
   <div class="header-spacer"></div>
   <a class="back-link" href="index_workshop.html">&larr; Workshop Hub</a>
+  <button class="theme-btn" id="themeBtn" onclick="toggleTheme()"><span id="themeIcon">&#9790;</span><span class="lbl" id="themeLbl">Dark</span></button>
   <button class="settings-toggle" id="settingsBtn" onclick="toggleSettings()">&#9881; ตั้งค่า</button>
   <div class="conn-badge disconnected" id="connBadge">
     <div class="conn-dot"></div>
@@ -1388,6 +1419,23 @@ function toggleSettings() {
 }
 
 // == Init ==
+// == Theme ==
+function toggleTheme() {
+  const html = document.documentElement;
+  setTheme(html.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
+}
+function setTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('ws-theme', t);
+  document.getElementById('themeIcon').innerHTML = t === 'light' ? '\u2604' : '\u263E';
+  document.getElementById('themeLbl').textContent = t === 'light' ? 'Light' : 'Dark';
+}
+(function() {
+  const s = localStorage.getItem('ws-theme');
+  if (s) setTheme(s);
+  else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) setTheme('light');
+})();
+
 function init() {
   const today = todayStr();
   document.getElementById('dateFrom').value = today;

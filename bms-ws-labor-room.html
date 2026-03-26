@@ -6,9 +6,10 @@
 <title>Workshop - Labor Room</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
-  :root{--bg:#0d1117;--surface:#161b22;--surface2:#1c2128;--border:#30363d;--text:#e6edf3;--text-muted:#7d8590;--primary:#1f6feb;--primary-glow:rgba(31,111,235,.15);--success:#3fb950;--success-bg:rgba(63,185,80,.1);--error:#f85149;--error-bg:rgba(248,81,73,.1);--warn:#d29922;--accent:#58a6ff;--teal:#39d353;--purple:#bc8cff;--orange:#ffa657;--pink:#f778ba;--cyan:#79c0ff}
+  :root{--bg:#0d1117;--surface:#161b22;--surface2:#1c2128;--border:#30363d;--text:#e6edf3;--text-muted:#7d8590;--primary:#1f6feb;--primary-glow:rgba(31,111,235,.15);--success:#3fb950;--success-bg:rgba(63,185,80,.1);--error:#f85149;--error-bg:rgba(248,81,73,.1);--warn:#d29922;--accent:#58a6ff;--teal:#39d353;--purple:#bc8cff;--orange:#ffa657;--pink:#f778ba;--cyan:#79c0ff;--color-scheme:dark}
+  [data-theme="light"]{--bg:#f6f8fa;--surface:#ffffff;--surface2:#f0f2f5;--border:#d0d7de;--text:#1f2328;--text-muted:#57606a;--primary:#0969da;--primary-glow:rgba(9,105,218,.1);--success:#1a7f37;--success-bg:rgba(26,127,55,.08);--error:#cf222e;--error-bg:rgba(207,34,46,.08);--warn:#9a6700;--accent:#0550ae;--teal:#1a7f37;--purple:#8250df;--orange:#bc4c00;--pink:#bf3989;--cyan:#0550ae;--color-scheme:light}
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6}
+  body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6;transition:background .3s,color .3s}
   .header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;gap:16px;height:56px;position:sticky;top:0;z-index:100}
   .header-logo{display:flex;align-items:center;gap:10px}
   .logo-shield{width:32px;height:32px;background:linear-gradient(135deg,#1f6feb,#58a6ff);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff}
@@ -30,7 +31,7 @@
   .field-label{font-size:11px;color:var(--text-muted);margin-bottom:3px}
   .field-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:7px 10px;color:var(--text);font-size:13px;font-family:'JetBrains Mono',monospace}
   .field-input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 2px var(--primary-glow)}
-  .field-input[type="date"]{color-scheme:dark}
+  .field-input[type="date"]{color-scheme:var(--color-scheme)}
   .status-row{display:flex;align-items:center;gap:6px;font-size:11px;margin-top:6px}
   .status-dot{width:6px;height:6px;border-radius:50%;background:var(--text-muted)}
   .status-dot.ok{background:var(--success)}.status-dot.err{background:var(--error)}
@@ -89,6 +90,10 @@
   .settings-toggle:hover{border-color:var(--accent);color:var(--text)}
   .settings-toggle.active{border-color:var(--primary);color:var(--accent);background:var(--primary-glow)}
   .sidebar-section.collapsible{display:none}.sidebar-section.collapsible.open{display:block}
+  .theme-btn{padding:4px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);color:var(--text-muted);font-size:14px;cursor:pointer;transition:all .15s;line-height:1;display:flex;align-items:center;gap:4px}
+  .theme-btn:hover{border-color:var(--accent);color:var(--accent)}
+  .theme-btn .lbl{font-size:11px;font-family:'Sarabun',sans-serif}
+  .header,.sidebar,.sidebar-section,.content,.toolbar,.tabs,.summary-row,.summary-card,.field-input,.btn,.settings-toggle,.sql-editor,.sql-toolbar,.toast,.empty-icon,.result-table th,.result-table td,.result-table tfoot td{transition:background .3s,border-color .3s,color .3s}
   @media(max-width:900px){.main{flex-direction:column}.sidebar{width:100%;min-width:auto;max-height:300px;border-right:none;border-bottom:1px solid var(--border)}}
 </style>
 </head>
@@ -98,6 +103,7 @@
   <span class="header-subtitle">สรุปการทำ Work Shop - ระบบงานห้องคลอด</span>
   <div class="header-spacer"></div>
   <a class="back-link" href="index_workshop.html">&larr; Workshop Hub</a>
+  <button class="theme-btn" id="themeBtn" onclick="toggleTheme()"><span id="themeIcon">&#9790;</span><span class="lbl" id="themeLbl">Dark</span></button>
   <button class="settings-toggle" id="settingsBtn" onclick="toggleSettings()">&#9881; ตั้งค่า</button>
   <div class="conn-badge disconnected" id="connBadge"><div class="conn-dot"></div><span id="connText">Not Connected</span></div>
 </div>
@@ -212,6 +218,9 @@ function exportCsv(){if(!lastData.length){showToast('err','ไม่มีข้
 function copySql(){const s=document.getElementById('sqlEditor').value||buildSql();navigator.clipboard.writeText(s).then(()=>showToast('ok','Copied')).catch(()=>{const t=document.createElement('textarea');t.value=s;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);showToast('ok','Copied')})}
 function showToast(t,m){const w=document.getElementById('toastWrap'),d=document.createElement('div');d.className='toast '+t;d.textContent=m;w.appendChild(d);setTimeout(()=>d.remove(),4000)}
 let settingsOpen=false;function toggleSettings(){settingsOpen=!settingsOpen;document.getElementById('settingsBtn').classList.toggle('active',settingsOpen);document.getElementById('sectionSession').classList.toggle('open',settingsOpen)}
+function toggleTheme(){const h=document.documentElement;setTheme(h.getAttribute('data-theme')==='light'?'dark':'light')}
+function setTheme(t){document.documentElement.setAttribute('data-theme',t);localStorage.setItem('ws-theme',t);document.getElementById('themeIcon').innerHTML=t==='light'?'\u2604':'\u263E';document.getElementById('themeLbl').textContent=t==='light'?'Light':'Dark'}
+(function(){const s=localStorage.getItem('ws-theme');if(s)setTheme(s);else if(window.matchMedia&&window.matchMedia('(prefers-color-scheme:light)').matches)setTheme('light')})();
 function init(){const t=todayStr();document.getElementById('dateFrom').value=t;document.getElementById('dateTo').value=t;loadCustomSql();document.getElementById('sessionId').addEventListener('input',updateSessionStatus);document.getElementById('dateFrom').addEventListener('change',()=>{if(customSql===null)updateSqlEditor()});document.getElementById('dateTo').addEventListener('change',()=>{if(customSql===null)updateSqlEditor()});const se=document.getElementById('sqlEditor');se.addEventListener('input',onSqlEditorInput);se.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();saveSql()}if(e.key==='Tab'){e.preventDefault();const s=se.selectionStart,en=se.selectionEnd;se.value=se.value.substring(0,s)+'  '+se.value.substring(en);se.selectionStart=se.selectionEnd=s+2;onSqlEditorInput()}});updateSqlEditor();const us=getSessionFromUrl();if(us){document.getElementById('sessionId').value=us;updateSessionStatus();setSessionCookie(us);removeSessionFromUrl();handleConnect();return}const cs=getSessionCookie();if(cs){document.getElementById('sessionId').value=cs;updateSessionStatus();handleConnect()}}
 init();
 </script>
