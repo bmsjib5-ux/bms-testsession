@@ -131,7 +131,9 @@
       <div class="summary-card"><div class="val-row"><span class="card-emoji">&#128101;</span><div class="val" style="color:var(--accent)" id="sumStaff">0</div></div><div class="label">Staff</div></div>
       <div class="summary-card"><div class="val-row"><span class="card-emoji">&#128203;</span><div class="val" style="color:var(--accent)" id="sum_cc_pt">0</div></div><div class="label">จำนวนผู้ป่วย</div></div>
       <div class="summary-card"><div class="val-row"><span class="card-emoji">&#129514;</span><div class="val" style="color:var(--teal)" id="sum_cc_order">0</div></div><div class="label">สั่ง Order</div></div>
-      <div class="summary-card"><div class="val-row"><span class="card-emoji">&#128200;</span><div class="val" style="color:var(--purple)" id="sum_cc_accept_report">0</div></div><div class="label">บันทึกผล</div></div>
+      <div class="summary-card"><div class="val-row"><span class="card-emoji">&#9989;</span><div class="val" style="color:var(--purple)" id="sum_cc_accept">0</div></div><div class="label">รับงาน</div></div>
+      <div class="summary-card"><div class="val-row"><span class="card-emoji">&#128200;</span><div class="val" style="color:var(--orange)" id="sum_cc_radiology">0</div></div><div class="label">Radiology</div></div>
+      <div class="summary-card"><div class="val-row"><span class="card-emoji">&#128196;</span><div class="val" style="color:var(--pink)" id="sum_cc_report">0</div></div><div class="label">รายงานผล</div></div>
     </div>
     <div class="toolbar" id="resultToolbar" style="display:none">
       <div class="toolbar-info"><span>Rows:</span><span class="count-badge" id="rowCount">0</span><span class="elapsed-badge" id="elapsedTime"></span></div>
@@ -161,7 +163,7 @@
 <div class="toast-wrap" id="toastWrap"></div>
 <script>
 const SESSION_COOKIE_NAME='bms-session-id',SESSION_COOKIE_DAYS=7,SESSION_URL_PARAM='bms-session-id',DEFAULT_TIMEOUT=60000,APP_NAME='BMS.Workshop.xray';
-const COLUMNS=[{"key":"loginname","label":"Login"},{"key":"name","label":"ชื่อ-นามสกุล"},{"key":"cc_pt","label":"จำนวนผู้ป่วย","type":"num"},{"key":"cc_order","label":"สั่ง Order","type":"num"},{"key":"cc_accept_report","label":"บันทึกผล","type":"num"}];
+const COLUMNS=[{"key":"request_staff","label":"Login"},{"key":"name","label":"ชื่อ-นามสกุล"},{"key":"cc_pt","label":"จำนวนผู้ป่วย","type":"num"},{"key":"cc_order","label":"สั่ง Order","type":"num"},{"key":"cc_accept","label":"รับงาน","type":"num"},{"key":"cc_radiology","label":"Radiology","type":"num"},{"key":"cc_report","label":"รายงานผล","type":"num"}];
 const LS_CUSTOM_SQL='ws-xray-custom-sql';
 let sessionConnected=false,sessionData=null,connectionConfig=null,userInfo=null,lastData=[],customSql=null,sqlModified=false;
 function escHtml(s){if(s==null)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
@@ -179,18 +181,27 @@ function disconnectSession(){sessionConnected=false;sessionData=null;connectionC
 function updateSessionStatus(){const v=document.getElementById('sessionId').value.trim();const d=document.getElementById('sessionDot');const t=document.getElementById('sessionStatusTxt');const g=/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;if(!v){d.className='status-dot';t.textContent='No Session ID';t.style.color='var(--text-muted)'}else if(g.test(v)){d.className='status-dot ok';t.textContent='Valid GUID';t.style.color='var(--success)'}else{d.className='status-dot err';t.textContent='Invalid format';t.style.color='var(--error)'}}
 function setDatePreset(p){const n=new Date();let f=new Date(),t=new Date();if(p==='yesterday'){f.setDate(n.getDate()-1);t.setDate(n.getDate()-1)}else if(p==='week')f.setDate(n.getDate()-6);else if(p==='month')f.setDate(n.getDate()-29);document.getElementById('dateFrom').value=fmtD(f);document.getElementById('dateTo').value=fmtD(t);if(customSql===null)updateSqlEditor()}
 function fmtD(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
-function buildDefaultSql(){const df=document.getElementById('dateFrom').value||todayStr();const dt=document.getElementById('dateTo').value||todayStr();return `SELECT u.name, u.loginname,
-  COUNT(DISTINCT x.vn) AS cc_pt,
-  COUNT(r.xn) AS cc_order,
-  (SELECT COUNT(DISTINCT officer_activity_log_key_value) FROM officer_activity_log
-    WHERE staff = u.loginname AND officer_activity_log_table = 'xray_report'
-    AND officer_activity_log_date BETWEEN '{dateFrom}' AND '{dateTo}') AS cc_accept_report
-FROM xray_head x
-LEFT JOIN xray_report r ON r.vn = x.vn
-LEFT JOIN opduser u ON u.loginname = r.request_staff
-WHERE x.order_date BETWEEN '{dateFrom}' AND '{dateTo}'
-  AND UPPER(u.name) NOT LIKE '%BMS%'
-GROUP BY u.name, u.loginname`.replace(/\{dateFrom\}/g,df).replace(/\{dateTo\}/g,dt)}
+function buildDefaultSql(){const df=document.getElementById('dateFrom').value||todayStr();const dt=document.getElementById('dateTo').value||todayStr();return `SELECT request_staff, name,
+  SUM(cc_pt) AS cc_pt, SUM(cc_order) AS cc_order,
+  SUM(cc_accept) AS cc_accept, SUM(cc_radiology) AS cc_radiology, SUM(cc_report) AS cc_report
+FROM (
+  SELECT r.request_staff, u.officer_name AS name,
+    COUNT(DISTINCT x.hn) AS cc_pt, COUNT(x.hn) AS cc_order,
+    COUNT(CASE WHEN r.confirm = 'Y' THEN r.confirm END) AS cc_accept,
+    COUNT(CASE WHEN x.confirm_radiology_all = 'Y' THEN x.confirm_radiology_all END) AS cc_radiology,
+    COUNT(CASE WHEN r.confirm_read_film = 'Y' THEN r.confirm_read_film END) AS cc_report,
+    x.order_date_time::TIME AS datetime, x.order_date
+  FROM xray_head x
+  LEFT JOIN xray_report r ON r.vn = x.vn
+  LEFT JOIN officer u ON u.officer_login_name = r.request_staff
+  LEFT JOIN officer_group_list l ON u.officer_id = l.officer_id
+  WHERE 1=1
+    AND l.officer_group_id = '11'
+  GROUP BY r.request_staff, u.officer_name, x.order_date_time, x.order_date
+) a
+WHERE order_date BETWEEN '{dateFrom}' AND '{dateTo}'
+  AND UPPER(name) NOT LIKE '%BMS%'
+GROUP BY request_staff, name, cc_pt`.replace(/\{dateFrom\}/g,df).replace(/\{dateTo\}/g,dt)}
 function buildSql(){if(customSql!==null){const df=document.getElementById('dateFrom').value||todayStr();const dt=document.getElementById('dateTo').value||todayStr();return customSql.replace(/\{dateFrom\}/g,df).replace(/\{dateTo\}/g,dt)}return buildDefaultSql()}
 function updateSqlEditor(){const e=document.getElementById('sqlEditor');if(!e)return;e.value=customSql!==null?customSql:buildDefaultSql();updateSqlStatus()}
 function updateSqlStatus(){const s=document.getElementById('sqlStatus'),sb=document.getElementById('sqlSaveBtn'),rb=document.getElementById('sqlResetBtn');if(customSql!==null){s.textContent=sqlModified?'modified (unsaved)':'custom (saved)';s.className='sql-status '+(sqlModified?'modified':'saved');sb.style.display=sqlModified?'':'none';rb.style.display=''}else if(sqlModified){s.textContent='modified (unsaved)';s.className='sql-status modified';sb.style.display='';rb.style.display=''}else{s.textContent='default';s.className='sql-status';sb.style.display='none';rb.style.display='none'}}
