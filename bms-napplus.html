@@ -1062,10 +1062,14 @@ async function handleConnect() {
   const hcodeFromSession = userInfo.hcode || userInfo.hospital_code || userInfo.hospcode || '';
   if (hcodeFromSession) {
     document.getElementById('hcode').value = hcodeFromSession;
+    updateNapplusUsername();
     updateSendBtnState();
   }
 
   showToast('ok', `Connected: ${userInfo.name || 'OK'} @ ${userInfo.location || ''}`);
+
+  // Auto-fetch NAPPLUS API Key from sys_var and auto-connect
+  await fetchAndConnectNapplus();
 }
 
 function disconnectSession() {
@@ -1441,6 +1445,44 @@ function updateSendBtnState() {
 function updateNapplusUsername() {
   const hcode = document.getElementById('hcode').value.trim();
   document.getElementById('napplusUsername').value = hcode ? `LAB${hcode}` : '';
+}
+
+async function fetchAndConnectNapplus() {
+  if (!sessionConnected || !connectionConfig) return;
+
+  const sql = "select sys_var from sys_var where sys_name = 'NAPPLUS_KEY'";
+  const fullUrl = `${connectionConfig.apiUrl}/api/sql?sql=${encodeURIComponent(sql)}&app=${encodeURIComponent(APP_NAME)}`;
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT);
+    const res = await fetch(fullUrl, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${connectionConfig.apiAuthKey}`,
+        'Content-Type': 'application/json',
+      },
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+    const data = await res.json();
+
+    if (data.MessageCode === 200 && data.results && data.results.length > 0) {
+      const napplusKey = data.results[0].sys_var || '';
+      if (napplusKey) {
+        document.getElementById('apiKey').value = napplusKey;
+        saveNapplusConfig();
+        // Auto-connect NAPPLUS if HCODE is also available
+        const hcode = document.getElementById('hcode').value.trim();
+        if (hcode && hcode.length === 5 && !napplusConnected) {
+          handleNapplusConnect();
+        }
+      }
+    }
+  } catch (e) {
+    // Silent fail - user can still enter API Key manually
+    console.warn('Auto-fetch NAPPLUS_KEY failed:', e.message);
+  }
 }
 
 function handleNapplusConnect() {
