@@ -183,13 +183,13 @@ function setDatePreset(p){const n=new Date();let f=new Date(),t=new Date();if(p=
 function fmtD(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function buildDefaultSql(){const df=document.getElementById('dateFrom').value||todayStr();const dt=document.getElementById('dateTo').value||todayStr();return `SELECT rd.staff, o.officer_name,
   COUNT(DISTINCT rd.vn) AS vn,
-  COUNT(DISTINCT CASE WHEN rd.rx_dispenser_detail_type = '1' THEN rd.vn END) AS rx,
+  COUNT(DISTINCT CASE WHEN rd.rx_dispenser_type_id = '1' THEN rd.vn END) AS rx,
   (SELECT COUNT(DISTINCT opi.hos_guid) FROM opitemrece opi WHERE opi.staff = rd.staff AND opi.rxdate BETWEEN '{dateFrom}' AND '{dateTo}' AND opi.icode LIKE '1%') AS drug,
   (SELECT COUNT(DISTINCT opi.hos_guid) FROM opitemrece opi WHERE opi.staff = rd.staff AND opi.rxdate BETWEEN '{dateFrom}' AND '{dateTo}' AND opi.icode NOT LIKE '1%') AS nondrug,
-  COUNT(DISTINCT CASE WHEN rd.rx_dispenser_detail_type = '4' THEN rd.vn END) AS rx2
+  COUNT(DISTINCT CASE WHEN rd.rx_dispenser_type_id = '4' THEN rd.vn END) AS rx2
 FROM rx_dispenser_detail rd
 LEFT JOIN officer o ON o.officer_login_name = rd.staff
-WHERE rd.rx_dispenser_datetime BETWEEN '{dateFrom}' AND '{dateTo}'
+WHERE rd.rx_dispenser_datetime::date BETWEEN '{dateFrom}' AND '{dateTo}'
   AND o.officer_name NOT ILIKE '%BMS%'
 GROUP BY rd.staff, o.officer_name`.replace(/\{dateFrom\}/g,df).replace(/\{dateTo\}/g,dt)}
 function buildSql(){if(customSql!==null){const df=document.getElementById('dateFrom').value||todayStr();const dt=document.getElementById('dateTo').value||todayStr();return customSql.replace(/\{dateFrom\}/g,df).replace(/\{dateTo\}/g,dt)}return buildDefaultSql()}

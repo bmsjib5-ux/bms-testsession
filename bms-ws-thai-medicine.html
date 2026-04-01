@@ -181,38 +181,45 @@ function disconnectSession(){sessionConnected=false;sessionData=null;connectionC
 function updateSessionStatus(){const v=document.getElementById('sessionId').value.trim();const d=document.getElementById('sessionDot');const t=document.getElementById('sessionStatusTxt');const g=/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;if(!v){d.className='status-dot';t.textContent='No Session ID';t.style.color='var(--text-muted)'}else if(g.test(v)){d.className='status-dot ok';t.textContent='Valid GUID';t.style.color='var(--success)'}else{d.className='status-dot err';t.textContent='Invalid format';t.style.color='var(--error)'}}
 function setDatePreset(p){const n=new Date();let f=new Date(),t=new Date();if(p==='yesterday'){f.setDate(n.getDate()-1);t.setDate(n.getDate()-1)}else if(p==='week')f.setDate(n.getDate()-6);else if(p==='month')f.setDate(n.getDate()-29);document.getElementById('dateFrom').value=fmtD(f);document.getElementById('dateTo').value=fmtD(t);if(customSql===null)updateSqlEditor()}
 function fmtD(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
-function buildDefaultSql(){const df=document.getElementById('dateFrom').value||todayStr();const dt=document.getElementById('dateTo').value||todayStr();return `SELECT tt.code, tt.name, tt.officer_login_name,
-  count(distinct tt.ov_doc) as ov_d, count(distinct tt.dx_doc) as dx_d,
+function buildDefaultSql(){const df=document.getElementById('dateFrom').value||todayStr();const dt=document.getElementById('dateTo').value||todayStr();return `SELECT tt.code, tt.name, tt.dsname, count(distinct tt.ov_doc) as ov_d,
+  count(distinct tt.dx_doc) as dx_d,
   count(distinct tt.lab_doc) as lab_d, count(distinct tt.xray_doc) as xray_d,
-  count(distinct tt.oapp_doc) as oapp_d, count(distinct tt.opi_doc) as opi1_d,
-  count(distinct tt.dp_doc) as dp_d, count(distinct tt.hpi_doc) as hpi_d,
-  count(distinct tt.cc_doc) as cc_d, count(distinct tt.bp_doc) as bp_d,
-  count(distinct tt.health_doc) as health_d
+  count(distinct tt.oapp_doc) as oapp_d, count(distinct tt.opi_doc) as opi1_d, count(distinct tt.opi3_doc) as opi3_d,
+  count(distinct tt.dp_doc) as dp_d, count(distinct tt.hpi_doc) as hpi_d, count(distinct tt.cc_doc) as cc_d,
+  count(distinct tt.bp_doc) as bp_d, count(distinct tt.health_doc) as health_d, tt.officer_login_name
 FROM (
-  SELECT c.code, c.name, u.officer_login_name,
+  SELECT c.code, c.name, ds.name as dsname,
     case when d.vn <> '' then d.vn end as ov_doc,
     case when v.pdx is not null then v.vn end as dx_doc,
     case when lh.form_name is not null then lh.vn end as lab_doc,
     case when x.xray_order_number is not null then x.vn end as xray_doc,
     case when o.oapp_id is not null then o.oapp_id end as oapp_doc,
     case when opi.icode like '1%' then opi.icode end as opi_doc,
+    case when opi.icode like '3%' then opi.icode end as opi3_doc,
     case when dp.er_oper_code is not null then dp.er_oper_code end as dp_doc,
     case when s.hpi_text is not null then s.vn end as hpi_doc,
     case when os.cc is not null then d.vn end as cc_doc,
     case when os.bps is not null then d.vn end as bp_doc,
-    case when hms.vn is not null then d.vn end as health_doc
+    case when hms.vn is not null then d.vn end as health_doc,
+    u.officer_login_name
   FROM ovst_doctor_sign d
   LEFT JOIN doctor c ON d.doctor = c.code
-  LEFT JOIN vn_stat v ON d.vn = v.vn LEFT JOIN lab_head lh ON d.vn = lh.vn
-  LEFT JOIN xray_head x ON d.vn = x.vn LEFT JOIN opitemrece opi ON d.vn = opi.vn
-  LEFT JOIN doctor_operation dp ON d.vn = dp.vn LEFT JOIN oapp o ON d.vn = o.vn
+  LEFT JOIN vn_stat v ON d.vn = v.vn
+  LEFT JOIN lab_head lh ON d.vn = lh.vn
+  LEFT JOIN xray_head x ON d.vn = x.vn
+  LEFT JOIN opitemrece opi ON d.vn = opi.vn
+  LEFT JOIN doctor_operation dp ON d.vn = dp.vn
+  LEFT JOIN oapp o ON d.vn = o.vn
   LEFT JOIN patient_history_hpi s ON d.vn = s.vn AND d.doctor = s.doctor_code
   LEFT JOIN officer u ON u.officer_doctor_code = c.code
+  LEFT JOIN officer_group_list l ON u.officer_id = l.officer_id
+  LEFT JOIN officer_group fg ON fg.officer_group_id = l.officer_group_id
+  LEFT JOIN doctor_position ds ON c.position_id = ds.id
   LEFT JOIN opdscreen os ON os.vn = d.vn
   LEFT JOIN health_med_service hms ON hms.vn = d.vn
-  WHERE d.sign_datetime BETWEEN '{dateFrom}' AND '{dateTo}'
-    AND c.name NOT LIKE '%BMS%' AND d.depcode IN ('179','178')
-) tt GROUP BY tt.code, tt.name, tt.officer_login_name ORDER BY ov_d DESC`.replace(/\{dateFrom\}/g,df).replace(/\{dateTo\}/g,dt)}
+  WHERE d.sign_datetime::date BETWEEN '{dateFrom}' AND '{dateTo}'
+    AND c.name NOT LIKE '%BMS%' AND fg.officer_group_name like '%แผนไทย%'
+) tt GROUP BY tt.code, tt.name, tt.dsname, tt.officer_login_name ORDER BY ov_d DESC`.replace(/\{dateFrom\}/g,df).replace(/\{dateTo\}/g,dt)}
 function buildSql(){if(customSql!==null){const df=document.getElementById('dateFrom').value||todayStr();const dt=document.getElementById('dateTo').value||todayStr();return customSql.replace(/\{dateFrom\}/g,df).replace(/\{dateTo\}/g,dt)}return buildDefaultSql()}
 function updateSqlEditor(){const e=document.getElementById('sqlEditor');if(!e)return;e.value=customSql!==null?customSql:buildDefaultSql();updateSqlStatus()}
 function updateSqlStatus(){const s=document.getElementById('sqlStatus'),sb=document.getElementById('sqlSaveBtn'),rb=document.getElementById('sqlResetBtn');if(customSql!==null){s.textContent=sqlModified?'modified (unsaved)':'custom (saved)';s.className='sql-status '+(sqlModified?'modified':'saved');sb.style.display=sqlModified?'':'none';rb.style.display=''}else if(sqlModified){s.textContent='modified (unsaved)';s.className='sql-status modified';sb.style.display='';rb.style.display=''}else{s.textContent='default';s.className='sql-status';sb.style.display='none';rb.style.display='none'}}
