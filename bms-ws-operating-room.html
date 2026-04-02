@@ -129,9 +129,9 @@
   <div class="content">
     <div class="summary-row" id="summaryRow" style="display:none">
       <div class="summary-card"><div class="val-row"><span class="card-emoji">&#128101;</span><div class="val" style="color:var(--accent)" id="sumStaff">0</div></div><div class="label">Staff</div></div>
-      <div class="summary-card"><div class="val-row"><span class="card-emoji">&#128203;</span><div class="val" style="color:var(--accent)" id="sum_operation_list">0</div></div><div class="label">รายการผ่าตัด</div></div>
-      <div class="summary-card"><div class="val-row"><span class="card-emoji">&#129514;</span><div class="val" style="color:var(--teal)" id="sum_operation_team">0</div></div><div class="label">ทีมผ่าตัด</div></div>
-      <div class="summary-card"><div class="val-row"><span class="card-emoji">&#128200;</span><div class="val" style="color:var(--purple)" id="sum_operation_specimen">0</div></div><div class="label">ชิ้นเนื้อ</div></div>
+      <div class="summary-card"><div class="val-row"><span class="card-emoji">&#128203;</span><div class="val" style="color:var(--accent)" id="sum_cc_hn">0</div></div><div class="label">จำนวน HN</div></div>
+      <div class="summary-card"><div class="val-row"><span class="card-emoji">&#129514;</span><div class="val" style="color:var(--teal)" id="sum_cc_case">0</div></div><div class="label">จำนวน Case</div></div>
+      <div class="summary-card"><div class="val-row"><span class="card-emoji">&#128200;</span><div class="val" style="color:var(--purple)" id="sum_cc_visit">0</div></div><div class="label">Visit</div></div>
       <div class="summary-card"><div class="val-row"><span class="card-emoji">&#128736;</span><div class="val" style="color:var(--orange)" id="sum_operation_visit_list">0</div></div><div class="label">Visit List</div></div>
       <div class="summary-card"><div class="val-row"><span class="card-emoji">&#128202;</span><div class="val" style="color:var(--pink)" id="sum_opitemrece">0</div></div><div class="label">สั่งยา</div></div>
     </div>
@@ -163,7 +163,7 @@
 <div class="toast-wrap" id="toastWrap"></div>
 <script>
 const SESSION_COOKIE_NAME='bms-session-id',SESSION_COOKIE_DAYS=7,SESSION_URL_PARAM='bms-session-id',DEFAULT_TIMEOUT=60000,APP_NAME='BMS.Workshop.operating-room';
-const COLUMNS=[{"key":"staff","label":"Login"},{"key":"officer_name","label":"ชื่อ-นามสกุล"},{"key":"operation_list","label":"รายการผ่าตัด","type":"num"},{"key":"operation_team","label":"ทีมผ่าตัด","type":"num"},{"key":"operation_specimen","label":"ชิ้นเนื้อ","type":"num"},{"key":"operation_visit_list","label":"Visit List","type":"num"},{"key":"opitemrece","label":"สั่งยา","type":"num"}];
+const COLUMNS=[{"key":"officer_login_name","label":"Login"},{"key":"officer_name","label":"ชื่อ-นามสกุล"},{"key":"cc_hn","label":"จำนวน HN","type":"num"},{"key":"cc_case","label":"จำนวน Case","type":"num"},{"key":"cc_visit","label":"Visit","type":"num"},{"key":"cc_screen","label":"Screen","type":"num"},{"key":"cc_anes","label":"Anes","type":"num"},{"key":"cc_operlist","label":"Oper List","type":"num"},{"key":"cc_icode","label":"รายการยา","type":"num"}];
 const LS_CUSTOM_SQL='ws-operating-room-custom-sql';
 let sessionConnected=false,sessionData=null,connectionConfig=null,userInfo=null,lastData=[],customSql=null,sqlModified=false;
 function escHtml(s){if(s==null)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
@@ -181,20 +181,23 @@ function disconnectSession(){sessionConnected=false;sessionData=null;connectionC
 function updateSessionStatus(){const v=document.getElementById('sessionId').value.trim();const d=document.getElementById('sessionDot');const t=document.getElementById('sessionStatusTxt');const g=/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;if(!v){d.className='status-dot';t.textContent='No Session ID';t.style.color='var(--text-muted)'}else if(g.test(v)){d.className='status-dot ok';t.textContent='Valid GUID';t.style.color='var(--success)'}else{d.className='status-dot err';t.textContent='Invalid format';t.style.color='var(--error)'}}
 function setDatePreset(p){const n=new Date();let f=new Date(),t=new Date();if(p==='yesterday'){f.setDate(n.getDate()-1);t.setDate(n.getDate()-1)}else if(p==='week')f.setDate(n.getDate()-6);else if(p==='month')f.setDate(n.getDate()-29);document.getElementById('dateFrom').value=fmtD(f);document.getElementById('dateTo').value=fmtD(t);if(customSql===null)updateSqlEditor()}
 function fmtD(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
-function buildDefaultSql(){const df=document.getElementById('dateFrom').value||todayStr();const dt=document.getElementById('dateTo').value||todayStr();return `SELECT l.staff, f.officer_name,
-  COUNT(DISTINCT CASE WHEN l.officer_activity_log_table = 'operation_list' THEN l.officer_activity_log_key_value END) AS operation_list,
-  COUNT(DISTINCT CASE WHEN l.officer_activity_log_table = 'operation_team' THEN l.officer_activity_log_key_value END) AS operation_team,
-  COUNT(DISTINCT CASE WHEN l.officer_activity_log_table = 'operation_specimen' THEN l.officer_activity_log_key_value END) AS operation_specimen,
-  COUNT(DISTINCT CASE WHEN l.officer_activity_log_table = 'operation_visit_list' THEN l.officer_activity_log_key_value END) AS operation_visit_list,
-  COUNT(DISTINCT CASE WHEN l.officer_activity_log_table = 'opitemrece' THEN l.officer_activity_log_key_value END) AS opitemrece
-FROM officer_activity_log l
-LEFT JOIN officer f ON l.staff = f.officer_login_name
-LEFT JOIN kskdepartment k ON k.depcode = l.depcode
-WHERE l.officer_activity_log_operation LIKE '%Add%'
-  AND l.officer_activity_log_date BETWEEN '{dateFrom}' AND '{dateTo}'
-  AND k.department LIKE '%ผ่า%'
-  AND f.officer_name NOT LIKE '%BMS%'
-GROUP BY l.staff, f.officer_name`.replace(/\{dateFrom\}/g,df).replace(/\{dateTo\}/g,dt)}
+function buildDefaultSql(){const df=document.getElementById('dateFrom').value||todayStr();const dt=document.getElementById('dateTo').value||todayStr();return `SELECT o.officer_login_name, o.officer_name,
+  count(distinct ol.hn) as cc_hn,
+  count(distinct ol.operation_id) as cc_case,
+  count(distinct(case when ovl.operation_visit_list_id is not null then ol.hn end)) as cc_visit,
+  count(distinct(case when os.operation_screen_id is not null then ol.hn end)) as cc_screen,
+  count(distinct(case when oa.anes_id is not null then ol.hn end)) as cc_anes,
+  count(distinct oal.operation_anes_oper_list_id) as cc_operlist,
+  count(distinct op.icode) as cc_icode
+FROM officer o
+INNER JOIN operation_list ol ON o.officer_login_name = ol.staff
+INNER JOIN operation_visit_list ovl ON ol.operation_id = ovl.operation_id
+LEFT JOIN operation_screen os ON os.operation_id = ol.operation_id
+LEFT JOIN operation_anes oa ON oa.operation_id = ol.operation_id
+LEFT JOIN operation_anes_oper_list oal ON oal.operation_id = ol.operation_id
+LEFT JOIN opitemrece op ON o.officer_login_name = op.staff AND rxdate BETWEEN '{dateFrom}' AND '{dateTo}'
+WHERE o.officer_group_list_text LIKE '%ผ่าตัด%'
+GROUP BY o.officer_login_name, o.officer_name`.replace(/\{dateFrom\}/g,df).replace(/\{dateTo\}/g,dt)}
 function buildSql(){if(customSql!==null){const df=document.getElementById('dateFrom').value||todayStr();const dt=document.getElementById('dateTo').value||todayStr();return customSql.replace(/\{dateFrom\}/g,df).replace(/\{dateTo\}/g,dt)}return buildDefaultSql()}
 function updateSqlEditor(){const e=document.getElementById('sqlEditor');if(!e)return;e.value=customSql!==null?customSql:buildDefaultSql();updateSqlStatus()}
 function updateSqlStatus(){const s=document.getElementById('sqlStatus'),sb=document.getElementById('sqlSaveBtn'),rb=document.getElementById('sqlResetBtn');if(customSql!==null){s.textContent=sqlModified?'modified (unsaved)':'custom (saved)';s.className='sql-status '+(sqlModified?'modified':'saved');sb.style.display=sqlModified?'':'none';rb.style.display=''}else if(sqlModified){s.textContent='modified (unsaved)';s.className='sql-status modified';sb.style.display='';rb.style.display=''}else{s.textContent='default';s.className='sql-status';sb.style.display='none';rb.style.display='none'}}
