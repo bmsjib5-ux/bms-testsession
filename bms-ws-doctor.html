@@ -207,7 +207,7 @@ FROM (
   LEFT JOIN patient_history_hpi s ON d.vn = s.vn AND d.doctor = s.doctor_code
   LEFT JOIN doctor_position ds ON c.position_id = ds.id
   WHERE d.sign_datetime::date BETWEEN '{dateFrom}' AND '{dateTo}'
-    AND c.name NOT LIKE '%BMS%' AND c.position_id IN ('1')
+    AND upper(c.name) NOT LIKE '%BMS%' AND c.position_id IN ('1')
   GROUP BY c.code, c.name, ds.name, d.vn
 ) AS tt GROUP BY tt.code, tt.name, tt.dsname ORDER BY tt.name`.replace(/\{dateFrom\}/g,df).replace(/\{dateTo\}/g,dt)}
 function buildSql(){if(customSql!==null){const df=document.getElementById('dateFrom').value||todayStr();const dt=document.getElementById('dateTo').value||todayStr();return customSql.replace(/\{dateFrom\}/g,df).replace(/\{dateTo\}/g,dt)}return buildDefaultSql()}

@@ -163,7 +163,7 @@
 <div class="toast-wrap" id="toastWrap"></div>
 <script>
 const SESSION_COOKIE_NAME='bms-session-id',SESSION_COOKIE_DAYS=7,SESSION_URL_PARAM='bms-session-id',DEFAULT_TIMEOUT=60000,APP_NAME='BMS.Workshop.er';
-const COLUMNS=[{"key":"staff","label":"Login"},{"key":"officer_name","label":"ชื่อ-นามสกุล"},{"key":"er","label":"รับ ER","type":"num"},{"key":"opdscreen_cc_list","label":"บันทึก CC","type":"num"},{"key":"opdscreen_bp","label":"Vital Sign","type":"num"},{"key":"doctor_operation","label":"หัตถการ","type":"num"},{"key":"lab_head","label":"สั่ง LAB","type":"num"},{"key":"xray_head","label":"สั่ง X-Ray","type":"num"},{"key":"opitemrece","label":"สั่งยา","type":"num"},{"key":"oapp","label":"นัด","type":"num"}];
+const COLUMNS=[{"key":"staff","label":"Login"},{"key":"officer_name","label":"ชื่อ-นามสกุล"},{"key":"er","label":"รับ ER","type":"num"},{"key":"doctor_operation","label":"หัตถการ","type":"num"},{"key":"patient_history_hpi","label":"HPI","type":"num"},{"key":"opdscreen_cc_list","label":"บันทึก CC","type":"num"},{"key":"opdscreen_bp","label":"Vital Sign","type":"num"},{"key":"lab_head","label":"สั่ง LAB","type":"num"},{"key":"xray_head","label":"สั่ง X-Ray","type":"num"},{"key":"opitemrece","label":"สั่งยา","type":"num"},{"key":"oapp","label":"นัด","type":"num"}];
 const LS_CUSTOM_SQL='ws-er-custom-sql';
 let sessionConnected=false,sessionData=null,connectionConfig=null,userInfo=null,lastData=[],customSql=null,sqlModified=false;
 function escHtml(s){if(s==null)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
@@ -182,22 +182,31 @@ function updateSessionStatus(){const v=document.getElementById('sessionId').valu
 function setDatePreset(p){const n=new Date();let f=new Date(),t=new Date();if(p==='yesterday'){f.setDate(n.getDate()-1);t.setDate(n.getDate()-1)}else if(p==='week')f.setDate(n.getDate()-6);else if(p==='month')f.setDate(n.getDate()-29);document.getElementById('dateFrom').value=fmtD(f);document.getElementById('dateTo').value=fmtD(t);if(customSql===null)updateSqlEditor()}
 function fmtD(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function buildDefaultSql(){const df=document.getElementById('dateFrom').value||todayStr();const dt=document.getElementById('dateTo').value||todayStr();return `SELECT f.staff, ff.officer_name,
-  COUNT(DISTINCT CASE WHEN officer_activity_log_table = 'er_regist' THEN officer_activity_log_parent_kv END) AS er,
-  COUNT(DISTINCT CASE WHEN officer_activity_log_table = 'opdscreen_cc_list' THEN officer_activity_log_parent_kv END) AS opdscreen_cc_list,
-  COUNT(DISTINCT CASE WHEN officer_activity_log_table = 'opdscreen_bp' THEN officer_activity_log_parent_kv END) AS opdscreen_bp,
-  COUNT(DISTINCT CASE WHEN officer_activity_log_table = 'doctor_operation' THEN officer_activity_log_parent_kv END) AS doctor_operation,
-  COUNT(CASE WHEN officer_activity_log_table = 'lab_head' THEN officer_activity_log_parent_kv END) AS lab_head,
-  COUNT(CASE WHEN officer_activity_log_table = 'xray_head' THEN officer_activity_log_parent_kv END) AS xray_head,
-  COUNT(CASE WHEN officer_activity_log_table = 'opitemrece' THEN officer_activity_log_parent_kv END) AS opitemrece,
-  COUNT(DISTINCT CASE WHEN officer_activity_log_table = 'oapp' THEN officer_activity_log_parent_kv END) AS oapp
+  s.er, s.doctor_operation, s.patient_history_hpi, s.opdscreen_cc_list, s.opdscreen_bp,
+  s.lab_head, s.xray_head, s.opitemrece, s.oapp
 FROM officer_activity_log f
 LEFT JOIN officer ff ON ff.officer_login_name = f.staff
-WHERE f.officer_activity_log_date::DATE BETWEEN '{dateFrom}' AND '{dateTo}'
-  AND f.depcode IN (SELECT depcode FROM kskdepartment WHERE department LIKE '%ฉุกเฉิน%')
+LEFT JOIN (SELECT f.staff,
+  count(CASE WHEN officer_activity_log_table = 'er_regist' THEN officer_activity_log_parent_kv END) AS er,
+  count(CASE WHEN officer_activity_log_table = 'doctor_operation' THEN officer_activity_log_parent_kv END) AS doctor_operation,
+  count(DISTINCT CASE WHEN officer_activity_log_table = 'patient_history_hpi' THEN officer_activity_log_parent_kv END) AS patient_history_hpi,
+  count(DISTINCT CASE WHEN officer_activity_log_table = 'opdscreen_cc_list' THEN officer_activity_log_parent_kv END) AS opdscreen_cc_list,
+  count(DISTINCT CASE WHEN officer_activity_log_table = 'opdscreen_bp' THEN officer_activity_log_parent_kv END) AS opdscreen_bp,
+  count(CASE WHEN officer_activity_log_table = 'lab_head' THEN officer_activity_log_parent_kv END) AS lab_head,
+  count(CASE WHEN officer_activity_log_table = 'xray_head' THEN officer_activity_log_parent_kv END) AS xray_head,
+  count(CASE WHEN officer_activity_log_table = 'opitemrece' THEN officer_activity_log_parent_kv END) AS opitemrece,
+  count(DISTINCT CASE WHEN officer_activity_log_table = 'oapp' THEN officer_activity_log_parent_kv END) AS oapp
+  FROM officer_activity_log f
+  LEFT JOIN officer ff ON ff.officer_login_name = f.staff
+  LEFT JOIN officer_group_list l ON ff.officer_id = l.officer_id
+  WHERE f.officer_activity_log_date::DATE BETWEEN '{dateFrom}' AND '{dateTo}'
+  AND l.officer_group_id IN (SELECT officer_group_id FROM officer_group WHERE officer_group_id IN ('1','6'))
   AND officer_activity_log_operation = 'Add'
-  AND f.staff NOT IN ('er')
+  GROUP BY f.staff) s ON s.staff = f.staff
+WHERE f.officer_activity_log_date::DATE BETWEEN '{dateFrom}' AND '{dateTo}'
   AND ff.officer_name NOT LIKE '%BMS%'
-GROUP BY f.staff, ff.officer_name`.replace(/\{dateFrom\}/g,df).replace(/\{dateTo\}/g,dt)}
+  AND f.depcode IN (SELECT depcode FROM kskdepartment WHERE department LIKE '%EMERGENCY ROOM%')
+GROUP BY f.staff, ff.officer_name, s.er, s.doctor_operation, s.patient_history_hpi, s.opdscreen_cc_list, s.opdscreen_bp, s.lab_head, s.xray_head, s.opitemrece, s.oapp`.replace(/\{dateFrom\}/g,df).replace(/\{dateTo\}/g,dt)}
 function buildSql(){if(customSql!==null){const df=document.getElementById('dateFrom').value||todayStr();const dt=document.getElementById('dateTo').value||todayStr();return customSql.replace(/\{dateFrom\}/g,df).replace(/\{dateTo\}/g,dt)}return buildDefaultSql()}
 function updateSqlEditor(){const e=document.getElementById('sqlEditor');if(!e)return;e.value=customSql!==null?customSql:buildDefaultSql();updateSqlStatus()}
 function updateSqlStatus(){const s=document.getElementById('sqlStatus'),sb=document.getElementById('sqlSaveBtn'),rb=document.getElementById('sqlResetBtn');if(customSql!==null){s.textContent=sqlModified?'modified (unsaved)':'custom (saved)';s.className='sql-status '+(sqlModified?'modified':'saved');sb.style.display=sqlModified?'':'none';rb.style.display=''}else if(sqlModified){s.textContent='modified (unsaved)';s.className='sql-status modified';sb.style.display='';rb.style.display=''}else{s.textContent='default';s.className='sql-status';sb.style.display='none';rb.style.display='none'}}
